@@ -3,6 +3,13 @@
 
 import AppKit
 import Carbon.HIToolbox
+import os
+
+/// Registration failures used to be invisible: a combination another app already owns simply
+/// did nothing. Settings now shows them, and the log says which one and why.
+private enum HotKeyLog {
+    static let shared = Logger(subsystem: "ch.arjo.vibrantplus", category: "hotkeys")
+}
 
 /// A key combination. Saved as key code + Carbon modifier flags.
 struct Shortcut: Codable, Equatable, Hashable {
@@ -161,6 +168,8 @@ final class HotKeys {
     static let shared = HotKeys()
 
     private(set) var shortcuts: [HotKeyAction: Shortcut] = [:]
+    /// Combinations that could not be registered: another app or a stale second copy holds them.
+    private(set) var unavailable: Set<HotKeyAction> = []
     @ObservationIgnored private var refs: [HotKeyAction: EventHotKeyRef] = [:]
     @ObservationIgnored private var handlers: [HotKeyAction: () -> Void] = [:]
     @ObservationIgnored private var installed = false
@@ -203,15 +212,21 @@ final class HotKeys {
         installHandlerOnce()
         for (_, ref) in refs { UnregisterEventHotKey(ref) }
         refs = [:]
+        var failed: Set<HotKeyAction> = []
         let prefs = Prefs.shared
         for (index, action) in HotKeyAction.allCases.enumerated() {
             guard action.isEnabled(in: prefs), let s = shortcuts[action] else { continue }
             var ref: EventHotKeyRef?
             let id = EventHotKeyID(signature: OSType(0x5642_504C), id: UInt32(index)) // 'VBPL'
-            if RegisterEventHotKey(s.keyCode, s.modifiers, id, GetApplicationEventTarget(), 0, &ref) == noErr, let ref {
+            let status = RegisterEventHotKey(s.keyCode, s.modifiers, id, GetApplicationEventTarget(), 0, &ref)
+            if status == noErr, let ref {
                 refs[action] = ref
+            } else {
+                failed.insert(action)
+                HotKeyLog.shared.error("shortcut \(action.rawValue, privacy: .public) \(s.display, privacy: .public) not registered (OSStatus \(status))")
             }
         }
+        unavailable = failed
     }
 
     fileprivate func fire(index: UInt32) {

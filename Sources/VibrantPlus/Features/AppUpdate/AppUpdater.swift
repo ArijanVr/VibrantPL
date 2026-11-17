@@ -134,10 +134,20 @@ final class AppUpdater {
             let verify = await MaintenanceCommand.run("/usr/bin/codesign", ["--verify", app.path])
             guard verify.status == 0 else { throw Failure.unsigned }
             let dest = URL(fileURLWithPath: "/Applications/Vibrant+.app")
-            let replace = await MaintenanceCommand.run("/usr/bin/ditto", [app.path, dest.path])
-            guard replace.status == 0 else { throw Failure.unpack }
+            // Never write into the bundle that is still running: rewriting a mapped
+            // executable leaves the old process pointing at deleted code pages, and the next
+            // page-in kills it with SIGBUS. Move the old bundle aside, put the new one in its
+            // place, and let the relaunch delete the old copy once this process has ended.
+            let old = URL(fileURLWithPath: "/Applications/.Vibrant+-old-\(UUID().uuidString).app")
+            try FileManager.default.moveItem(at: dest, to: old)
+            let place = await MaintenanceCommand.run("/usr/bin/ditto", [app.path, dest.path])
+            guard place.status == 0 else {
+                try? FileManager.default.removeItem(at: dest)
+                try? FileManager.default.moveItem(at: old, to: dest)
+                throw Failure.unpack
+            }
             IslandModel.shared.show(Toast(symbol: "checkmark.circle", text: "Update installiert, Neustart…"))
-            AppRelaunch.now()
+            AppRelaunch.now(removing: old)
         } catch {
             status = .failed(error.localizedDescription)
         }

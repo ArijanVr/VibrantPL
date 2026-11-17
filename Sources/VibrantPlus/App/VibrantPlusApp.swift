@@ -131,7 +131,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             SelfTest.run()
             return
         }
+        // A second copy would fight with this one over the agent socket and the global
+        // shortcuts, and the copy that loses registers no hot key at all. LaunchServices
+        // refuses a second launch; this catches copies started by path. A copy that is only
+        // still shutting down (relaunch after an update) gets a moment before this one steps aside.
+        if Self.otherCopyIsRunning {
+            Task { @MainActor in
+                for _ in 0..<15 {
+                    if !Self.otherCopyIsRunning { Coordinator.shared.start(); return }
+                    try? await Task.sleep(for: .milliseconds(100))
+                }
+                NSRunningApplication.runningApplications(withBundleIdentifier: "ch.arjo.vibrantplus")
+                    .first { $0.processIdentifier != ProcessInfo.processInfo.processIdentifier }?
+                    .activate()
+                NSApp.terminate(nil)
+            }
+            return
+        }
         Coordinator.shared.start()
+    }
+
+    private static var otherCopyIsRunning: Bool {
+        NSRunningApplication.runningApplications(withBundleIdentifier: "ch.arjo.vibrantplus")
+            .contains { $0.processIdentifier != ProcessInfo.processInfo.processIdentifier && !$0.isTerminated }
     }
 
     func applicationWillTerminate(_ notification: Notification) {

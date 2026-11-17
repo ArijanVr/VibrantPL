@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.1 — 2026-11-18
+
+Stabilitäts-Release: Ursachen für «Vibrant+ schliesst sich von alleine» und «reagiert manchmal nicht» behoben.
+
+- Bauen: Die laufende App wird beendet und abgewartet, bevor `/Applications/Vibrant+.app` ersetzt wird. Vorher starb die alte Kopie beim nächsten Nachladen einer Code-Seite (`SIGBUS`).
+- Bauen: Die Signatur wird nach dem Installieren geprüft (inklusive Team-ID der verschachtelten Dylibs). Ein fehlgeschlagenes Signieren bricht ab, statt eine App zu installieren, die nicht startet – davon waren die Debug-Builds betroffen.
+- Selbstupdate: Das alte Bundle wird zur Seite gelegt und erst nach dem Beenden gelöscht, statt die laufende App zu überschreiben.
+- Nur eine Kopie gleichzeitig: Ein zweiter Start aktiviert die laufende App und beendet sich.
+- Kurzbefehle: Belegte Kombinationen werden in den Einstellungen angezeigt und protokolliert; die Aufnahme endet beim Wechsel in eine andere App.
+- Systemmonitor: Prozessliste, Kompressor-Anteil und freier Speicher werden ausserhalb des Hauptthreads gelesen; die Prozessliste nur noch alle acht Sekunden.
+- Alle wiederkehrenden Timer laufen auch bei offenem Menü, laufendem Dialog oder beim Ziehen eines Fensters weiter.
+
 ## 1.0.0 — 2026-11-17 (VibrantPL)
 
 - Frischer öffentlicher Start im Repo [ArijanVr/VibrantPL](https://github.com/ArijanVr/VibrantPL).

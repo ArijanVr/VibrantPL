@@ -47,6 +47,11 @@ final class ExtendedSystemMonitor {
     @ObservationIgnored private var previousDisk: (NetworkTotals, Date)?
     @ObservationIgnored private var cpuThreshold = SustainedThreshold()
     @ObservationIgnored private var lastAlert: [String: Date] = [:]
+    /// Results of the off-main reads, applied on the next tick.
+    @ObservationIgnored private var slowTask: Task<Void, Never>?
+    @ObservationIgnored private var slowTick = 0
+    @ObservationIgnored private var slow: (processes: [ProcessUsage], compressor: Double?)?
+    @ObservationIgnored private var diskFreeGB: Double?
 
     func start() {
         guard !running else { return }
@@ -55,6 +60,7 @@ final class ExtendedSystemMonitor {
     }
     func stop() {
         running = false; timer?.invalidate(); timer = nil; previousNetwork = nil; previousDisk = nil; cpuTicks = nil
+        slowTask?.cancel(); slowTask = nil; slow = nil; diskFreeGB = nil
     }
     func preferencesChanged() {
         guard running else { return }
@@ -70,10 +76,11 @@ final class ExtendedSystemMonitor {
     func sample() {
         guard running else { return }
         let p = SystemToolPreferences.shared, now = Date.now
+        refreshSlowValues(p)
         if !p.monitorCPU && !p.alertCPU { cpuTicks = nil }
         let cpu = p.monitorCPU || p.alertCPU ? SystemStats.cpuUsage(&cpuTicks) : nil
         let memory = p.monitorMemory || p.alertMemory ? SystemStats.memoryUsedGB() : nil
-        let disk = p.monitorDisk || p.alertDisk ? (try? URL(fileURLWithPath: "/").resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey]).volumeAvailableCapacityForImportantUsage).map { Double($0) / 1_000_000_000 } : nil
+        let disk = p.monitorDisk || p.alertDisk ? diskFreeGB : nil
         let battery = p.monitorPower || p.alertBattery ? SystemStats.batteryState().0 : nil
         let power = Self.onExternalPower()
         var incoming: Double?, outgoing: Double?
@@ -89,8 +96,8 @@ final class ExtendedSystemMonitor {
             previousNetwork = (network.totals, now)
         } else { previousNetwork = nil; localAddresses = [] }
         if p.monitorMemory {
-            processes = ProcessSnapshot.heaviest(limit: 8, excluding: getpid())
-            compressorShare = SystemStats.compressorShare()
+            processes = slow?.processes ?? processes
+            compressorShare = slow?.compressor ?? compressorShare
         } else { processes = []; compressorShare = nil }
         if p.monitorDisk {
             let io = Self.diskIO()
@@ -115,6 +122,35 @@ final class ExtendedSystemMonitor {
         if history.count > 180 { history.removeFirst(history.count - 180) }
         checkAlerts(sample)
     }
+
+    /// Free space, the process list and the compressor share are read off the main thread.
+    /// The volume query wakes CacheDelete, and the process sweep asks the kernel about every
+    /// process on the Mac. Both ran here every two seconds and made the app feel dead while
+    /// the monitor was on: late hot keys, a frozen island, audio dropouts. The values are one
+    /// tick old, which nobody sees in a system monitor.
+    private func refreshSlowValues(_ p: SystemToolPreferences) {
+        guard slowTask == nil else { return }
+        let wantProcesses = p.monitorMemory
+        let wantDisk = p.monitorDisk || p.alertDisk
+        guard wantProcesses || wantDisk else { return }
+        slowTick += 1
+        // The sweep is by far the most expensive read; every fourth tick is enough for a
+        // list of the heaviest processes.
+        let sweep = wantProcesses && slowTick % 4 == 1
+        slowTask = Task.detached(priority: .utility) {
+            let processes = sweep ? ProcessSnapshot.heaviest(limit: 8, excluding: getpid()) : []
+            let compressor = sweep ? SystemStats.compressorShare() : nil
+            let disk = wantDisk ? (try? URL(fileURLWithPath: "/")
+                .resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey])
+                .volumeAvailableCapacityForImportantUsage).map { Double($0) / 1_000_000_000 } : nil
+            await MainActor.run {
+                if sweep { self.slow = (processes, compressor) }
+                if let disk { self.diskFreeGB = disk }
+                self.slowTask = nil
+            }
+        }
+    }
+
     private func checkAlerts(_ value: Sample) {
         let p = SystemToolPreferences.shared
         let highCPU = cpuThreshold.evaluate(exceeded: p.alertCPU && (value.cpu ?? 0) > 0.9, now: value.date, duration: 20)

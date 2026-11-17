@@ -49,10 +49,13 @@ nonisolated enum Run {
 /// anything after it has quit. This is the one place Vibrant+ uses a shell; the app path goes in as an
 /// argument (`$1`), never into the script text, so nothing in it can become a command.
 enum AppRelaunch {
-    static func now() {
+    /// Quits and opens the app again. `removing` is an old bundle the updater moved aside:
+    /// it is deleted only after this process has ended, never while it still maps its code.
+    static func now(removing old: URL? = nil) {
         let p = Process()
         p.executableURL = URL(fileURLWithPath: "/bin/sh")
-        p.arguments = ["-c", "sleep 1; /usr/bin/open \"$1\"", "sh", Bundle.main.bundlePath]
+        let script = old == nil ? "sleep 1; /usr/bin/open \"$1\"" : "sleep 1; /usr/bin/open \"$1\"; /bin/rm -rf \"$2\""
+        p.arguments = ["-c", script, "sh", Bundle.main.bundlePath] + (old.map { [$0.path] } ?? [])
         try? p.run()
         NSApp.terminate(nil)
     }
@@ -187,8 +190,11 @@ extension Timer {
     /// a MacBook Air on battery (Apple's Energy Efficiency Guide: at least 10 %). Every
     /// repeating timer in Vibrant+ goes through here.
     static func repeating(every seconds: TimeInterval, _ block: @escaping @Sendable (Timer) -> Void) -> Timer {
-        let timer = Timer.scheduledTimer(withTimeInterval: seconds, repeats: true, block: block)
+        let timer = Timer(timeInterval: seconds, repeats: true, block: block)
         timer.tolerance = seconds * 0.1
+        // `.common`, not the default mode: otherwise every timer stops while a menu is open,
+        // an alert runs or a window is dragged, and the whole app looks dead until it is over.
+        RunLoop.main.add(timer, forMode: .common)
         return timer
     }
 }

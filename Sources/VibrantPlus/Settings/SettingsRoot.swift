@@ -1113,12 +1113,19 @@ struct ShortcutSettings: View {
                 .opacity(a.isEnabled(in: Prefs.shared) ? 1 : 0.5)
             }
         } footer: {
-            Text("Klicke auf einen Kurzbefehl und drücke die neuen Tasten, mindestens mit ⌃, ⌥ oder ⌘. Esc bricht ab.")
+            if hotkeys.unavailable.isEmpty {
+                Text("Klicke auf einen Kurzbefehl und drücke die neuen Tasten, mindestens mit ⌃, ⌥ oder ⌘. Esc bricht ab.")
+            } else {
+                Text("Von einer anderen App belegt und darum ohne Wirkung: \(hotkeys.unavailable.map(\.title).sorted().joined(separator: ", ")). Wähle dort eine andere Kombination.")
+            }
         }
         Section {
             Button("Standard wiederherstellen") { hotkeys.reset() }
         }
         .onDisappear { stopRecording() }
+        // Clicking into another app ends the recording, otherwise every key of this window
+        // stays swallowed and all global shortcuts stay paused.
+        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didResignKeyNotification)) { _ in stopRecording() }
     }
 
     private func record(_ a: HotKeyAction) {
