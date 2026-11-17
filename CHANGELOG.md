@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.0 — 2026-11-17
+
+- Versionsnummer für Updates von 1.0.x (Auto-Update erkennt 1.1.0).
+- Inhaltlich der Open-Source-Stand von 0.1.0 (GPL-3.0-or-later).
+
 ## 0.1.0 — 2026-11-17
 
 - Erste **Open-Source-Version** unter GPL-3.0-or-later.
