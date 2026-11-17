@@ -1234,7 +1234,7 @@ struct AboutSettings: View {
             case .downloading: Text("Update wird geladen…")
             case .failed(let message): Text(message).foregroundStyle(.red)
             }
-            Text("Zuerst GitHub Releases (ArijanVr/VibrantPlus). Optional lokaler Ordner über die Umgebungsvariable PROJEKTELAB_RELEASES. Kein Sparkle. Automatisch nur prüfen, nie still installieren.")
+            Text("Zuerst GitHub Releases (ArijanVr/VibrantPL). Optional lokaler Ordner über die Umgebungsvariable PROJEKTELAB_RELEASES. Kein Sparkle. Automatisch nur prüfen, nie still installieren.")
                 .font(.caption).foregroundStyle(.secondary)
         }
         Section("Was Vibrant+ bewusst nicht tut") {

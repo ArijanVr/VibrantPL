@@ -34,7 +34,7 @@ spctl -a -vv "$work/Vibrant+.app"
 mkdir -p "$dir"
 ditto -c -k --keepParent "$work/Vibrant+.app" "$dir/Vibrant+-$version.zip"
 echo "release: $dir/Vibrant+-$version.zip (notarisiert)"
-releases_repo=${GITHUB_RELEASES_REPO:-ArijanVr/VibrantPlus}
+releases_repo=${GITHUB_RELEASES_REPO:-ArijanVr/VibrantPL}
 if command -v gh >/dev/null; then
   zip="$dir/Vibrant+-$version.zip"
   tag="v$version"
@@ -44,5 +44,5 @@ if command -v gh >/dev/null; then
     gh release create "$tag" "$zip" --repo "$releases_repo" --title "Vibrant+ $version" --notes "Notarisiertes ZIP. GPL-3.0-or-later. Neuinstallation statt Update von 1.0.x." && echo "github: $releases_repo $tag" || echo "github: Anlegen fehlgeschlagen, ZIP liegt in $dir"
   fi
 else
-  echo "Hinweis: gh fehlt — ZIP manuell unter https://github.com/ArijanVr/VibrantPlus/releases hochladen."
+  echo "Hinweis: gh fehlt — ZIP manuell unter https://github.com/ArijanVr/VibrantPL/releases hochladen."
 fi

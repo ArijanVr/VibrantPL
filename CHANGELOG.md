@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0 — 2026-11-17 (VibrantPL)
+
+- Frischer öffentlicher Start im Repo [ArijanVr/VibrantPL](https://github.com/ArijanVr/VibrantPL).
+- Auto-Update-Feed zeigt auf dieses Repo.
+- Inhalt: Open-Source-Stand (GPL-3.0-or-later).
+
 ## 1.1.0 — 2026-11-17
 
 - Versionsnummer für Updates von 1.0.x (Auto-Update erkennt 1.1.0).

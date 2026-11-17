@@ -30,8 +30,8 @@ public struct AppVersion: Comparable, Equatable, Sendable {
 }
 
 public enum AppUpdatePlan {
-    public static let repo = "ArijanVr/VibrantPlus"
-    public static let apiLatest = URL(string: "https://api.github.com/repos/ArijanVr/VibrantPlus/releases/latest")!
+    public static let repo = "ArijanVr/VibrantPL"
+    public static let apiLatest = URL(string: "https://api.github.com/repos/ArijanVr/VibrantPL/releases/latest")!
 
     public static func zipName(version: String) -> String { "Vibrant+-\(version).zip" }
 

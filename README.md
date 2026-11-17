@@ -4,7 +4,7 @@ Native macOS-Menüleisten-App von ARJO LAB. Der Notch wird zur Insel: Musik, Ter
 
 Vibrant+ ist freie Software unter der **GNU General Public License, Version 3 oder (nach deiner Wahl) jeder späteren Version**. Siehe `LICENSE` und `NOTICE`.
 
-**Version 1.1.0** ist der aktuelle Open-Source-Stand (inhaltlich wie 0.1.0, höhere Nummer für Updates von 1.0.x). Sie ersetzt frühere interne Stände (1.0.x / 3.x). **Neuinstallation nötig** — kein automatisches Update von 1.0.x auf 1.1.0 (kleinere Versionsnummer). Bundle-ID bleibt `ch.arjo.vibrantplus`; lokale Daten bleiben erhalten, Berechtigungen können erneut nötig sein.
+**Version 1.0.0** — frischer Start im Repo VibrantPL (Auto-Updates zeigen hierher). Sie ersetzt frühere interne Stände (1.0.x / 3.x). **Neuinstallation nötig** — kein automatisches Update ältere interne Builds (kleinere Versionsnummer). Bundle-ID bleibt `ch.arjo.vibrantplus`; lokale Daten bleiben erhalten, Berechtigungen können erneut nötig sein.
 
 Der Name «Vibrant+», Logo und Icon sind Marken von ARJO LAB und nicht durch die GPL abgedeckt.
 
@@ -30,7 +30,7 @@ tools/selftest.sh   # Debug-Build + Selbsttest gegen /tmp
 ## Von 1.0.x umsteigen
 
 1. Vibrant+ beenden.
-2. `/Applications/Vibrant+.app` durch 1.1.0 ersetzen (Installer-ZIP oder `./build.sh`).
+2. `/Applications/Vibrant+.app` durch dieses Release ersetzen (Installer-ZIP oder `./build.sh`).
 3. Starten; bei Bedarf Berechtigungen erneut erlauben.
 
 ## Kurzbedienung

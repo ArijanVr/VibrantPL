@@ -57,5 +57,5 @@ Sources/VibrantPlus/
 
 - Kein SwiftData: drei kleine JSON-Dateien sind einfacher und testbar.
 - Kein Sandbox: Rowline (Bedienungshilfen), Unix-Socket, Dateien neben dem Original und `~/.claude/settings.json` wären im Sandbox nicht möglich. Hardened Runtime ist aktiv.
-- Kein Sparkle, keine Lizenzprüfung, keine privaten APIs (Helligkeit, Trackpad-Rand, `_AXUIElementGetWindow`). Updates: GitHub Releases von `ArijanVr/VibrantPlus` (optional lokaler Ordner über `PROJEKTELAB_RELEASES`), Schalter standardmässig aus.
+- Kein Sparkle, keine Lizenzprüfung, keine privaten APIs (Helligkeit, Trackpad-Rand, `_AXUIElementGetWindow`). Updates: GitHub Releases von `ArijanVr/VibrantPL` (optional lokaler Ordner über `PROJEKTELAB_RELEASES`), Schalter standardmässig aus.
 - Fenster sind AppKit-`NSWindow` mit SwiftUI-Inhalt, weil eine Menüleisten-App ohne Dock-Symbol SwiftUI-Szenen nicht zuverlässig aus AppKit-Code öffnen kann.

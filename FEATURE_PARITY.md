@@ -57,7 +57,7 @@ Referenzstand: `89d2626089d693bf0462ba29ea5d047d80c9da2e`. Die folgende Liste en
 | `cleaner` | In Prüfung | Nur eigene Library-Caches/Logs, Auswahl in den Papierkorb, keine Systemordner; Laufzeitprüfung ausstehend. |
 | `uninstaller` | In Prüfung | App plus exakt zur Bundle-ID passende Reste, Auswahl in den Papierkorb; keine Vendor-Suche. |
 | `homebrew` | In Prüfung | Suchen, Info, Installieren, Entfernen über festen brew-Pfad, ohne Shell und ohne sudo. |
-| `appUpdates` | In Prüfung | Homebrew-Updates, App-Store-Link und Vibrant+-Selbstupdate über GitHub Releases (`ArijanVr/VibrantPlus`; optional `PROJEKTELAB_RELEASES`), ohne Sparkle, Prüfung aus bis eingeschaltet. |
+| `appUpdates` | In Prüfung | Homebrew-Updates, App-Store-Link und Vibrant+-Selbstupdate über GitHub Releases (`ArijanVr/VibrantPL`; optional `PROJEKTELAB_RELEASES`), ohne Sparkle, Prüfung aus bis eingeschaltet. |
 | `screenshot` | In Prüfung | Screen/Window/Area, Preview-Markup, Schwärzen, Wasserzeichen, Rand und scrollendes Fenster (max. 8 Streifen). Teilen-Links brauchen einen Server und bleiben aus. |
 | `cameraPreview` | In Prüfung | Insel-Spiegel und schwebendes Fenster; Kamera nur solange eine der beiden Oberflächen offen ist. |
 | `radialMenu` | In Prüfung | Radialmenü der ersten acht Favoriten am Zeiger; Profile und Untermenüs der Referenz offen. |
