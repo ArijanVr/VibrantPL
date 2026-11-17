@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CFBundleIdentifier</key><string>ch.arjo.vibrantplus</string>
+<key>CFBundleName</key><string>Vibrant+</string>
+<key>CFBundleDisplayName</key><string>Vibrant+</string>
+<key>CFBundleExecutable</key><string>VibrantPlus</string>
+<key>CFBundleIconFile</key><string>AppIcon</string>
+<key>CFBundleIconName</key><string>AppIcon</string>
+<key>CFBundlePackageType</key><string>APPL</string>
+<key>CFBundleShortVersionString</key><string>0.1.0</string>
+<key>CFBundleVersion</key><string>__BUILD__</string>
+<key>CFBundleDevelopmentRegion</key><string>de</string>
+<key>LSMinimumSystemVersion</key><string>26.0</string>
+<key>LSApplicationCategoryType</key><string>public.app-category.productivity</string>
+<key>LSUIElement</key><true/>
+<key>NSHighResolutionCapable</key><true/>
+<key>NSPrincipalClass</key><string>NSApplication</string>
+<key>NSHumanReadableCopyright</key><string>© 2026 ARJO LAB</string>
+<key>NSAppleEventsUsageDescription</key><string>Vibrant+ steuert Musik und Spotify für die Insel, schaltet über System Events den Dunkelmodus und leert auf deinen Wunsch über den Finder den Papierkorb und legt auf Wunsch Besprechungen in Notizen ab.</string>
+<key>NSCalendarsFullAccessUsageDescription</key><string>Vibrant+ zeigt deinen nächsten Termin und die Termine von heute in der Insel. Nur lesen, nichts verlässt deinen Mac.</string>
+<key>NSRemindersFullAccessUsageDescription</key><string>Vibrant+ zeigt fällige Erinnerungen in der Insel und hakt sie auf deinen Wunsch ab. Nichts verlässt deinen Mac.</string>
+<key>NSDownloadsFolderUsageDescription</key><string>Vibrant+ speichert Bilder, Videos und Musik, die du per Link lädst, in deinem Download-Ordner.</string>
+<key>NSCameraUsageDescription</key><string>Vibrant+ zeigt dir das Kamerabild als Spiegel in der Insel, nur solange du ihn einschaltest. Es wird nichts aufgenommen und nichts verlässt deinen Mac.</string>
+<key>NSMicrophoneUsageDescription</key><string>Vibrant+ hört nur zu, solange du ⌃⌥ oder ⌃⌘ hältst oder eine Besprechung mitschreibst, und wandelt das Gesagte auf dem Mac in Text um. Es wird kein Ton gespeichert.</string>
+<key>NSSpeechRecognitionUsageDescription</key><string>Vibrant+ wandelt das Gesagte in Text um, wenn möglich direkt auf deinem Mac.</string>
+<key>NSAudioCaptureUsageDescription</key><string>Vibrant+ nutzt den Ton einzelner Apps nur, um ihre Lautstärke im Mixer zu ändern. Es wird nichts aufgenommen und nichts verlässt deinen Mac.</string>
+</dict></plist>

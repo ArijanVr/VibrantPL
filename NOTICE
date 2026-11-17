@@ -1,0 +1,16 @@
+Vibrant+
+Copyright 2026 ARJO LAB
+
+This product is licensed under the GNU General Public License, version 3
+or (at your option) any later version. See the file LICENSE.
+
+Third-party material
+--------------------
+
+Resources/KeySounds/*.wav (except files marked otherwise in
+Resources/KeySounds/LICENSE.txt)
+  License: CC0 1.0 Universal
+  See Resources/KeySounds/LICENSE.txt for sources.
+
+Optional tools used at runtime if the user installs them (not bundled):
+  yt-dlp, ffmpeg, Homebrew — each under its own license.

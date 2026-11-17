@@ -1,0 +1,23 @@
+.build/
+.swiftpm/
+DerivedData/
+*.xcodeproj/
+xcuserdata/
+.DS_Store
+.env*
+.env
+/shots/
+Generated/
+.omg/
+AUDIT.md
+*.p12
+*.p8
+*.cer
+*.mobileprovision
+*.xcconfig.local
+
+# Internal / not for public tree
+docs/reference-analysis/
+TEST_REPORT.md
+SECURITY_REPORT.md
+docs/PROGRESS.md

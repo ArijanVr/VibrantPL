@@ -1,0 +1,53 @@
+# Xcode project for the app (needed for App Intents metadata: Siri, Shortcuts, Spotlight).
+# Generate with `xcodegen generate`; build.sh does this. The .xcodeproj is not in git.
+# Unit tests still run with `swift test` (Package.swift).
+name: VibrantPlus
+options:
+  deploymentTarget:
+    macOS: "26.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MACOSX_DEPLOYMENT_TARGET: "26.0"
+    # Apple silicon only (M1 to M5, every variant). macOS 26 runs on all of them; Intel
+    # is out of scope, so no Universal Binary.
+    ARCHS: arm64
+    # Drop unused code from the binary (Xcode's default for new projects, XcodeGen leaves it off).
+    DEAD_CODE_STRIPPING: YES
+targets:
+  VibrantPlusKit:
+    type: library.static
+    platform: macOS
+    sources: [Sources/VibrantPlusKit]
+    settings:
+      base:
+        PRODUCT_NAME: VibrantPlusKit
+        SKIP_INSTALL: YES
+  VibrantPlus:
+    type: application
+    platform: macOS
+    sources:
+      - Sources/VibrantPlus
+      - path: Icon/AppIcon.icon
+        buildPhase: resources
+      - path: Resources/KeySounds
+        type: folder
+        buildPhase: resources
+    dependencies:
+      - target: VibrantPlusKit
+    settings:
+      base:
+        PRODUCT_NAME: VibrantPlus
+        PRODUCT_BUNDLE_IDENTIFIER: ch.arjo.vibrantplus
+        INFOPLIST_FILE: Generated/Info.plist
+        CODE_SIGN_ENTITLEMENTS: VibrantPlus.entitlements
+        ENABLE_HARDENED_RUNTIME: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+        SWIFT_STRICT_CONCURRENCY: complete
+        SWIFT_OBJC_BRIDGING_HEADER: Sources/VibrantPlus/VibrantPlus-Bridging-Header.h
+        HEADER_SEARCH_PATHS: [Sources/VibrantPlus]
+        CODE_SIGNING_ALLOWED: NO
+        CODE_SIGN_IDENTITY: ""
+        GENERATE_INFOPLIST_FILE: NO

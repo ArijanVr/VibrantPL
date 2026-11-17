@@ -1,0 +1,21 @@
+version = 1
+
+[[annotations]]
+path = ["Resources/KeySounds/**"]
+SPDX-FileCopyrightText = "see Resources/KeySounds/LICENSE.txt"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = ["Icon/**", "Resources/AppIcon.icns", "Resources/Assets.car"]
+SPDX-FileCopyrightText = "2026 ARJO LAB"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = ["**.md", "**.yml", "**.plist", "**.plist.in", "**.entitlements", "Package.swift", ".gitignore"]
+SPDX-FileCopyrightText = "2026 ARJO LAB"
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+[[annotations]]
+path = ["NOTICE", "tools/**"]
+SPDX-FileCopyrightText = "2026 ARJO LAB"
+SPDX-License-Identifier = "GPL-3.0-or-later"
