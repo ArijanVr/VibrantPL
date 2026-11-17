@@ -1,53 +1,153 @@
-# Vibrant+
+<p align="center">
+  <img src="docs/media/app-icon.png" alt="Vibrant+ App-Icon" width="128" height="128">
+</p>
 
-Native macOS-Menüleisten-App von ARJO LAB. Der Notch wird zur Insel: Musik, Termine, Wetter, Aufgaben, Claude Code live mit Berechtigungen, Dateiumwandlung (Stow), Fensterreihen (Rowline), Lautstärke pro App am Bildschirmrand, Diktieren per Stimme, App-Raster und Tastengeräusche.
+<p align="center">
+  <img src="docs/media/logo-wortmarke.png" alt="Vibrant+" width="280">
+</p>
 
-Vibrant+ ist freie Software unter der **GNU General Public License, Version 3 oder (nach deiner Wahl) jeder späteren Version**. Siehe `LICENSE` und `NOTICE`.
+<h1 align="center">Vibrant+</h1>
 
-**Version 1.0.0** — frischer Start im Repo VibrantPL (Auto-Updates zeigen hierher). Sie ersetzt frühere interne Stände (1.0.x / 3.x). **Neuinstallation nötig** — kein automatisches Update ältere interne Builds (kleinere Versionsnummer). Bundle-ID bleibt `ch.arjo.vibrantplus`; lokale Daten bleiben erhalten, Berechtigungen können erneut nötig sein.
+<p align="center">
+  <strong>Der Notch wird zur Insel.</strong><br>
+  Native macOS-Menüleisten-App von ARJO LAB — Musik, Termine, Wetter, Aufgaben,<br>
+  Claude Code, Dateiumwandlung, Fensterreihen, Lautstärke pro App, Diktieren und mehr.
+</p>
 
-Der Name «Vibrant+», Logo und Icon sind Marken von ARJO LAB und nicht durch die GPL abgedeckt.
+<p align="center">
+  <a href="https://github.com/ArijanVr/VibrantPL/releases/latest"><img src="https://img.shields.io/github/v/release/ArijanVr/VibrantPL?label=Release&color=D63C7A" alt="Latest release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/Lizenz-GPL--3.0--or--later-blue" alt="GPL-3.0-or-later"></a>
+  <a href="https://arjolab.ch/vibrant-plus"><img src="https://img.shields.io/badge/Website-arjolab.ch-111111" alt="Website"></a>
+  <img src="https://img.shields.io/badge/macOS-26+-black" alt="macOS 26+">
+  <img src="https://img.shields.io/badge/Apple%20silicon-arm64-black" alt="Apple silicon">
+</p>
 
-## Voraussetzungen
+<p align="center">
+  <a href="#installieren">Installieren</a> ·
+  <a href="#einblicke">Einblicke</a> ·
+  <a href="#videos">Videos</a> ·
+  <a href="#kurzbedienung">Bedienung</a> ·
+  <a href="https://arjolab.ch/vibrant-plus">Produktseite</a>
+</p>
 
-- macOS 26 (Tahoe) oder neuer, Apple silicon
-- Zum Bauen: Xcode 26+ (getestet mit Xcode 27.2, Swift 6.4) und XcodeGen (`brew install xcodegen`)
-- Optional: Claude Code, `yt-dlp`, `ffmpeg`, Homebrew (nicht mitgeliefert)
+---
 
-## Bauen und starten
+## Installieren
+
+**Voraussetzungen:** macOS 26 (Tahoe) oder neuer, Apple silicon (M-Chip).
+
+### Fertige App (empfohlen)
+
+1. Lade das neueste Release herunter: **[Vibrant+-1.0.0.zip](https://github.com/ArijanVr/VibrantPL/releases/download/v1.0.0/Vibrant%2B-1.0.0.zip)**  
+   (oder die [Release-Seite](https://github.com/ArijanVr/VibrantPL/releases/latest))
+2. Öffne die ZIP-Datei (Doppelklick).
+3. Ziehe **Vibrant+.app** in den Ordner **Programme** (`/Applications`).
+4. Starte Vibrant+ aus dem Programme-Ordner (Rechtsklick › **Öffnen**, falls macOS beim ersten Start nachfragt).
+5. Das Symbol erscheint in der **Menüleiste** — nicht im Dock.
+6. Bewege die Maus auf den Notch (oder drücke **⌃⌥⌘I**), um die Insel zu öffnen. Berechtigungen (Kalender, Erinnerungen, Mikrofon …) erlaubst du erst, wenn eine Funktion sie braucht.
+
+**Prüfen:** Menüleistensymbol ist sichtbar; Notch-Hover öffnet die Insel.
+
+SHA-256 von `Vibrant+-1.0.0.zip`:
+
+```text
+11af64a61e075a13c049f9038ef90bc5acf55519e50867535a31ab86bc78446f
+```
+
+### Neuinstallation / von älteren Builds umsteigen
+
+1. Vibrant+ vollständig beenden (Menüleiste › Beenden).
+2. Alte `/Applications/Vibrant+.app` durch die neue Version ersetzen.
+3. Neu starten; bei Bedarf Berechtigungen erneut erlauben.
+
+Lokale Daten unter `~/Library/Application Support/VibrantPlus/` bleiben erhalten. Die Bundle-ID bleibt `ch.arjo.vibrantplus`.
+
+### Aus dem Quellcode bauen
 
 ```bash
+git clone https://github.com/ArijanVr/VibrantPL.git
+cd VibrantPL
 ./build.sh --open
 ```
 
-Release-Build, Signatur, Installation nach `/Applications/Vibrant+.app`. Kein Dock-Symbol — Symbol in der Menüleiste.
+Zusätzlich brauchst du Xcode 26+ und XcodeGen (`brew install xcodegen`). Optional: Claude Code, `yt-dlp`, `ffmpeg`.
 
 ```bash
 swift test --scratch-path ~/Library/Developer/VibrantPlus/test-build
-tools/selftest.sh   # Debug-Build + Selbsttest gegen /tmp
+tools/selftest.sh
 ```
 
-## Von 1.0.x umsteigen
+---
 
-1. Vibrant+ beenden.
-2. `/Applications/Vibrant+.app` durch dieses Release ersetzen (Installer-ZIP oder `./build.sh`).
-3. Starten; bei Bedarf Berechtigungen erneut erlauben.
+## Einblicke
+
+<p align="center">
+  <img src="docs/media/produkt-insel.png" alt="Vibrant+ Insel am Notch" width="720">
+</p>
+
+| Insel & Start | Heute |
+|:---:|:---:|
+| <img src="docs/media/produkt-insel.png" alt="Insel Start" width="360"> | <img src="docs/media/produkt-heute.png" alt="Heute" width="360"> |
+
+| Freigaben | Rand-Regler |
+|:---:|:---:|
+| <img src="docs/media/produkt-freigabe.png" alt="Freigaben" width="360"> | <img src="docs/media/produkt-rand-regler.png" alt="Rand-Regler" width="360"> |
+
+| Heller Modus | Ruhe |
+|:---:|:---:|
+| <img src="docs/media/produkt-hell.png" alt="Heller Modus" width="360"> | <img src="docs/media/produkt-ruhe.png" alt="Ruhe" width="360"> |
+
+Weitere Produktfotos und Marke: Ordner [`docs/media/`](docs/media/).
+
+---
+
+## Videos
+
+| Video | Link |
+|---|---|
+| Produktfilm 1.0 (Website) | [arjolab.ch — Vibrant+ Film](https://arjolab.ch/media/vibrant-1.0.0-film-5dde48604529.mp4) |
+| Werbevideo 1.0 (16:9, mit Ton) | [Download auf GitHub Releases](https://github.com/ArijanVr/VibrantPL/releases/download/v1.0.0/Vibrant-Plus_Werbevideo_1-0_16x9_Ton_v2.mp4) |
+| Pulsi-Erklärvideo (16:9) | [Download auf GitHub Releases](https://github.com/ArijanVr/VibrantPL/releases/download/v1.0.0/Vibrant-Plus_Pulsi-Erklaervideo_16x9_v2.mp4) |
+
+Produktseite mit eingebettetem Film: [arjolab.ch/vibrant-plus](https://arjolab.ch/vibrant-plus)
+
+<video src="https://arjolab.ch/media/vibrant-1.0.0-film-5dde48604529.mp4" controls width="720" poster="docs/media/produkt-insel.png">
+  Dein Browser zeigt das Video hier nicht an — nutze die Links oben.
+</video>
+
+---
+
+## Was Vibrant+ kann
+
+- **Insel am Notch** — Musik, Termine, Wetter, Aufgaben auf einen Blick
+- **Claude Code** — Live-Status und Berechtigungen in der Insel
+- **Stow** — Dateien umwandeln per Drag & Drop auf den Notch
+- **Rowline** — Fensterreihen per Kurzbefehl
+- **Rand-Regler** — Lautstärke pro App am Bildschirmrand
+- **Diktieren** — Sprache zu Text halten und sprechen
+- **App-Raster**, Tastengeräusche, Downloads per Link und mehr
+
+Version **1.0.0** ist der öffentliche Start in diesem Repo (Auto-Updates zeigen hierher).
+
+---
 
 ## Kurzbedienung
 
 | Was | Wie |
 |---|---|
-| Insel öffnen | Maus auf den Notch, oder ⌃⌥⌘I |
+| Insel öffnen | Maus auf den Notch, oder **⌃⌥⌘I** |
 | Datei umwandeln | Datei auf den Notch ziehen |
 | Claude Code | Einstellungen › Claude Code › verbinden |
-| Rowline | ⌃⌥⌘F und Nachbartasten (siehe Einstellungen › Kurzbefehle) |
-| Diktieren | ⌃⌥ bzw. ⌃⌘ halten und sprechen |
+| Rowline | **⌃⌥⌘F** und Nachbartasten (siehe Einstellungen › Kurzbefehle) |
+| Diktieren | **⌃⌥** bzw. **⌃⌘** halten und sprechen |
+
+---
 
 ## Datenschutz und Netzwerk
 
 Daten liegen lokal unter `~/Library/Application Support/VibrantPlus/`. Keine Konten, keine Analyse, keine Telemetrie.
 
-Ins Netz (HTTPS) gehen nur, wenn du die jeweilige Funktion nutzt:
+Ins Netz (HTTPS) gehen nur Funktionen, die du nutzt:
 
 - Wetter: Open-Meteo (Stadtname)
 - Spotify-Cover: Cover-URL
@@ -56,14 +156,23 @@ Ins Netz (HTTPS) gehen nur, wenn du die jeweilige Funktion nutzt:
 - Optionale Downloads: Ziele, die du angibst (`yt-dlp`)
 - Optional Updates: GitHub Releases dieses Repos (Schalter standardmässig aus)
 
+---
+
 ## Dokumentation
 
-- `ARCHITECTURE.md` — Aufbau
-- `CONTRIBUTING.md` — Mitwirken
-- `SECURITY.md` — Sicherheitslücken melden
-- `CHANGELOG.md` — Änderungen
-- `docs/DESIGN_SYSTEM.md` — Design-Tokens
+- [`ARCHITECTURE.md`](ARCHITECTURE.md) — Aufbau
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — Mitwirken
+- [`SECURITY.md`](SECURITY.md) — Sicherheitslücken melden
+- [`CHANGELOG.md`](CHANGELOG.md) — Änderungen
+- [`docs/DESIGN_SYSTEM.md`](docs/DESIGN_SYSTEM.md) — Design-Tokens
+- [`docs/media/`](docs/media/) — Logo, Icon, Produktfotos
 
-## Marke und Inspiration
+---
+
+## Marke und Lizenz
+
+Vibrant+ ist freie Software unter der **GNU General Public License, Version 3 oder (nach deiner Wahl) jeder späteren Version**. Siehe `LICENSE` und `NOTICE`.
+
+Der Name «Vibrant+», Logo und Icon sind Marken von ARJO LAB und **nicht** durch die GPL abgedeckt.
 
 Funktionskonzepte wurden eigenständig umgesetzt. Kein fremder proprietärer Code und keine fremden Assets.
