@@ -51,11 +51,13 @@ nonisolated enum Run {
 enum AppRelaunch {
     /// Quits and opens the app again. `removing` is an old bundle the updater moved aside:
     /// it is deleted only after this process has ended, never while it still maps its code.
-    static func now(removing old: URL? = nil) {
+    /// `opening` is the bundle to start. The updater passes the freshly installed copy: the running one
+    /// may live elsewhere (Downloads, a build folder) and would come back as the old version.
+    static func now(removing old: URL? = nil, opening app: URL? = nil) {
         let p = Process()
         p.executableURL = URL(fileURLWithPath: "/bin/sh")
         let script = old == nil ? "sleep 1; /usr/bin/open \"$1\"" : "sleep 1; /usr/bin/open \"$1\"; /bin/rm -rf \"$2\""
-        p.arguments = ["-c", script, "sh", Bundle.main.bundlePath] + (old.map { [$0.path] } ?? [])
+        p.arguments = ["-c", script, "sh", app?.path ?? Bundle.main.bundlePath] + (old.map { [$0.path] } ?? [])
         try? p.run()
         NSApp.terminate(nil)
     }

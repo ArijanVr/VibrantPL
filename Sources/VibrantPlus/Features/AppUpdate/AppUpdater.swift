@@ -147,7 +147,7 @@ final class AppUpdater {
                 throw Failure.unpack
             }
             IslandModel.shared.show(Toast(symbol: "checkmark.circle", text: "Update installiert, Neustart…"))
-            AppRelaunch.now(removing: old)
+            AppRelaunch.now(removing: old, opening: dest)
         } catch {
             status = .failed(error.localizedDescription)
         }
