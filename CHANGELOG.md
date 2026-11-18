@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2 — 2026-11-18
+
+Selbstupdate: Nach dem Aktualisieren startet immer die neu installierte Kopie in `/Applications`. Vorher öffnete der Neustart den Pfad der laufenden App; lief sie aus einem anderen Ordner (Downloads, Build-Ordner), kam die alte Version zurück.
+
 ## 1.0.1 — 2026-11-18
 
 Stabilitäts-Release: Ursachen für «Vibrant+ schliesst sich von alleine» und «reagiert manchmal nicht» behoben.
