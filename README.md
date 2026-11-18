@@ -38,7 +38,7 @@
 
 ### Fertige App (empfohlen)
 
-1. Lade das neueste Release herunter: **[Vibrant+-1.0.1.zip](https://github.com/ArijanVr/VibrantPL/releases/download/v1.0.1/Vibrant%2B-1.0.1.zip)**  
+1. Lade das neueste Release herunter: **[Vibrant+-1.0.2.zip](https://github.com/ArijanVr/VibrantPL/releases/download/v1.0.2/Vibrant%2B-1.0.2.zip)**  
    (oder die [Release-Seite](https://github.com/ArijanVr/VibrantPL/releases/latest))
 2. Öffne die ZIP-Datei (Doppelklick).
 3. Ziehe **Vibrant+.app** in den Ordner **Programme** (`/Applications`).
@@ -48,10 +48,10 @@
 
 **Prüfen:** Menüleistensymbol ist sichtbar; Notch-Hover öffnet die Insel.
 
-SHA-256 von `Vibrant+-1.0.1.zip`:
+SHA-256 von `Vibrant+-1.0.2.zip`:
 
 ```text
-d72ffef2a2d63502152f21cc93d259c7f074639b62599fd2c2ade2d982df87f4
+d0f617f32e20e5e806de46e7b8c302364694003a5f0f3c3513f6d67cb0f37611
 ```
 
 ### Neuinstallation / von älteren Builds umsteigen
@@ -129,7 +129,7 @@ Produktseite mit eingebettetem Film: [arjolab.ch/vibrant-plus](https://arjolab.c
 - **Diktieren** — Sprache zu Text halten und sprechen
 - **App-Raster**, Tastengeräusche, Downloads per Link und mehr
 
-Version **1.0.1** ist das aktuelle Release: Stabilitäts-Fixes gegen den Absturz beim Ersetzen der App und gegen eine träge Oberfläche bei eingeschaltetem Systemmonitor. Auto-Updates zeigen hierher; ab 1.0.0 lädt Vibrant+ neue Fassungen direkt in der App.
+Version **1.0.2** ist das aktuelle Release: Das Selbstupdate startet danach immer die neu installierte Kopie. 1.0.1 brachte die Stabilitäts-Fixes. Auto-Updates zeigen hierher; ab 1.0.0 lädt Vibrant+ neue Fassungen direkt in der App.
 
 ---
 
