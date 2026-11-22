@@ -23,6 +23,8 @@ struct IslandNavigationSettings: View {
                 Text("Nur Symbole").tag(IslandNavigation.Labels.icons)
                 Text("Alle Seitennamen").tag(IslandNavigation.Labels.all)
             }
+            .disabled(prefs.islandNavigation.placement == .besideNotch)
+            .help("Wirkt bei «Über den Kacheln». Neben dem Notch steht der Seitenname rechts vom Notch.")
             Toggle("Datum in der Leiste", isOn: $prefs.islandNavigation.showsDate)
             Toggle("Einstellungen in der Leiste", isOn: $prefs.islandNavigation.showsSettings)
             ForEach(pages, id: \.self) { page in

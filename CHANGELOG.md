@@ -1,5 +1,38 @@
 # Changelog
 
+## 1.1.0 — 2026-11-22
+
+Neu gestaltete Insel, neue Kacheln und Funktionen, Codex-Anbindung und ein Hinweis bei neuen Versionen.
+
+**Insel und Bedienung**
+
+- Liquid Glass neu: Rauchglas, neben dem Notch schwarz, jede Kachel als Scheibe mit Lichtkante. In Hell und Dunkel lesbar (alle Textstufen mindestens 4,5 : 1).
+- Navigation: links vom Notch die Seiten, rechts der Seitenname; beim Überfahren steht dort der Name des Symbols. Seiten gleiten aus ihrer Richtung herein.
+- Seitennamen «Downloads» und «Assistent» statt «Laden» und «Fragen».
+- Leuchtumriss in Puls: läuft bei Claude-Start, Frage und Fertig, optional bei ⌘C/⌘V/⌘X/⌘Z, beim Netzteil und beim Öffnen mit der Maus; dauernd, solange die Insel offen ist. Stile Lichtwelle, Komet und Portal, mit Vorschau.
+- Szenen: Kachelsätze auf einen Klick, das eigene Layout bleibt gesichert.
+- Neue Kacheln: Teleprompter, Befehle, Browser-Tab (mit Wiedergabe/Pause), Nachricht.
+- Ablage mit Filter, per AirDrop erhaltene Dateien erscheinen in der Insel, Screenshot-Karte kann hängen bleiben.
+- Acht neue Tastenklänge.
+
+**Claude Code und Codex**
+
+- Codex-Anbindung: Freigaben von Codex erscheinen in der Insel (Einstellungen › Claude Code › Codex).
+- Fragen mit mehreren Teilen einzeln mit Zurück und Weiter; Antworten auch per Stimme.
+- «Dateien automatisch»: erlaubt einem Chat nur Dateien im Projektordner; Befehle, versteckte Dateien und alles ausserhalb fragen weiter.
+
+**Updates**
+
+- Gibt es eine neue Version, öffnet sich die Insel mit «Jetzt aktualisieren», «Später» und «Überspringen». Geprüft wird beim Start und alle sechs Stunden, GitHub höchstens einmal am Tag.
+
+**Fehlerbehebungen**
+
+- Die geschlossene Insel mit Hinweis wurde so breit wie ihr Fenster und lag über der Menüleiste.
+- «Aufnehmen» in der Farbpipette war abgeschnitten.
+- Wischen über einer Liste konnte die Insel schliessen; eine wartende Anfrage schliesst sie nie mehr.
+- Mit der Navigation über den Kacheln verrutschte die Lücke für den Notch, und ⌘1 bis ⌘9 fehlten.
+- Tastenklänge liefen bei ausgeschaltetem Tastatur-Modul.
+
 ## 1.0.2 — 2026-11-18
 
 Selbstupdate: Nach dem Aktualisieren startet immer die neu installierte Kopie in `/Applications`. Vorher öffnete der Neustart den Pfad der laufenden App; lief sie aus einem anderen Ordner (Downloads, Build-Ordner), kam die alte Version zurück.
@@ -22,7 +55,7 @@ Stabilitäts-Release: Ursachen für «Vibrant+ schliesst sich von alleine» und 
 - Auto-Update-Feed zeigt auf dieses Repo.
 - Inhalt: Open-Source-Stand (GPL-3.0-or-later).
 
-## 1.1.0 — 2026-11-17
+## 1.1.0 — 2026-11-17 (früherer Stand, in diesem Repo nie veröffentlicht)
 
 - Versionsnummer für Updates von 1.0.x (Auto-Update erkennt 1.1.0).
 - Inhaltlich der Open-Source-Stand von 0.1.0 (GPL-3.0-or-later).

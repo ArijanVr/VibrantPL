@@ -33,7 +33,7 @@ final class KeyMonitor {
         } else if !need {
             stop()
         }
-        if p.keySounds { sounds.prepare(profile: p.keySoundProfile) }
+        if p.isOn(.keys), p.keySounds { sounds.prepare(profile: p.keySoundProfile) }
     }
 
     func stop() {
@@ -48,8 +48,8 @@ final class KeyMonitor {
         let p = Prefs.shared
         if down, !repeatKey, p.shortcutEcho, flags.intersection([.command, .control, .option, .shift]) == .command,
            ["c", "v", "x", "z"].contains(chars.lowercased()) { GlowCenter.shared.fire() }
-        if p.keySounds, !repeatKey { sounds.play(down: down, keyCode: code, volume: Float(p.keySoundVolume)) }
-        guard down, p.showKeys else { return }
+        if p.isOn(.keys), p.keySounds, !repeatKey { sounds.play(down: down, keyCode: code, volume: Float(p.keySoundVolume)) }
+        guard down, p.isOn(.keys), p.showKeys else { return }
         let mods = flags.intersection([.command, .control, .option])
         // By default only shortcuts are shown, never typed text.
         guard p.showAllKeys || !mods.isEmpty else { return }

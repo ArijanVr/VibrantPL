@@ -13,6 +13,7 @@ final class Coordinator {
     private let prefs = Prefs.shared
     private(set) var running: Set<Module> = []
     private var activationObserver: NSObjectProtocol?
+    private var updateTimer: Timer?
 
     func start() {
         Paths.ensureDataDirectory()
@@ -36,6 +37,12 @@ final class Coordinator {
             Task {
                 try? await Task.sleep(for: .seconds(12))
                 AppUpdater.shared.check(automatic: true)
+            }
+        }
+        // Vibrant+ runs for days: look again every few hours. The check itself asks GitHub at most once a day.
+        updateTimer = Timer.repeating(every: 6 * 3_600) { _ in
+            MainActor.assumeIsolated {
+                if Prefs.shared.onboarded, Prefs.shared.appAutoUpdate { AppUpdater.shared.check(automatic: true) }
             }
         }
     }

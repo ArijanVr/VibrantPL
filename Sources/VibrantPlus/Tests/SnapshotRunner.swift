@@ -33,6 +33,13 @@ enum SnapshotRunner {
         IslandModel.shared.hasNotch = true
 
         Task {
+            if ProcessInfo.processInfo.environment["APP_SNAPSHOT_SCOPE"] == "island" {
+                await DesignSnapshots.run(into: dir)
+                print("SNAPSHOT island wrote \(dir.path)")
+                fflush(stdout)
+                // No terminate: nothing was started, so there is nothing to stop or restore.
+                exit(0)
+            }
             if ProcessInfo.processInfo.environment["APP_SNAPSHOT_SCOPE"] == "setup" {
                 for dark in [false, true] {
                     let mode = dark ? "dark" : "light"
@@ -157,7 +164,6 @@ enum SnapshotRunner {
 
             for dark in [false, true] {
                 IslandTheme.shared.style = .notch
-                IslandTheme.shared.setMacDark(dark)
                 let mode = dark ? "dark" : "light"
                 island.isOpen = true
                 island.page = .home

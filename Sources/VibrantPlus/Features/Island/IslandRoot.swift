@@ -20,12 +20,14 @@ struct IslandRoot: View {
                         // The band beside the notch is not wasted: the pages put their tabs there.
                         band
                         openContent
+                            .gridProbe("content", area: "island")
                             .padding(.top, Space.xs)
                             .padding([.horizontal, .bottom], Metrics.islandPadding)
                     }
                     // As wide as what it shows needs: the pages take the full width, one card less.
                     .frame(width: showsPages ? Metrics.islandWidth : Metrics.islandCardWidth)
                     .fixedSize(horizontal: false, vertical: true)
+                    .gridArea("island", inset: Metrics.islandPadding)
                     .onGeometryChange(for: CGSize.self) { $0.size } action: { size in
                         guard abs(size.height - model.openHeight) > 1 || abs(size.width - model.openWidth) > 1 else { return }
                         // Never resize the window inside SwiftUI's layout pass: AppKit throws.
@@ -47,17 +49,16 @@ struct IslandRoot: View {
             }
             // Shoulders sit outside the body: pad first, then draw the outline around it.
             .padding(.horizontal, shoulder)
-            .islandBackground(IslandShape(radius: model.isOpen ? CGFloat(NotchGeometry.openRadius)
-                                                               : CGFloat(NotchGeometry.closedRadius(notchHeight: model.notchSize.height)),
-                                          shoulder: shoulder), open: model.isOpen)
+            .islandBackground(islandShape, open: model.isOpen, band: model.bandHeight)
             .shadow(color: model.isOpen ? Shadow.card : .clear, radius: Shadow.cardRadius, y: Shadow.cardY)
-            .overlay {
-                IslandGlow(shape: IslandShape(radius: model.isOpen ? CGFloat(NotchGeometry.openRadius)
-                                                                   : CGFloat(NotchGeometry.closedRadius(notchHeight: model.notchSize.height)),
-                                              shoulder: shoulder),
-                           status: agent.headline?.status)
+            .overlay(alignment: .top) {
+                // The idle island has no size at all: the light then runs along the notch itself.
+                IslandGlow(shape: islandShape, status: agent.headline?.status, open: model.isOpen)
+                    .frame(width: isIdle ? model.notchSize.width + Space.sm : nil,
+                           height: isIdle ? model.notchSize.height + Space.xs : nil)
             }
-            .scaleEffect(model.growing ? 0.8 : 1, anchor: .top)
+            .scaleEffect(model.growing ? Motion.growScale : 1, anchor: .top)
+            .foregroundStyle(IslandColor.primaryText)
             .environment(\.colorScheme, IslandColor.scheme)
             // Pulsi peeks out under the notch while the mouse rests on it, and hangs on the open island.
             .overlay(alignment: .top) { peekingMascot }
@@ -73,12 +74,23 @@ struct IslandRoot: View {
             withAnimation(Motion.respecting(Motion.islandClose)) { IslandController.shared.close() }
         }
         .animation(Motion.respecting(model.isOpen ? Motion.island : Motion.islandClose), value: model.isOpen)
-        .animation(Motion.respecting(Motion.island), value: model.page)
+        .animation(Motion.respecting(Motion.page), value: model.page)
         .animation(Motion.respecting(Motion.quick), value: agent.pending.count)
         .animation(Motion.respecting(Motion.island), value: showsPages)
     }
 
     private var mascotOn: Bool { Prefs.shared.mascot }
+
+    private var islandShape: IslandShape {
+        IslandShape(radius: model.isOpen ? CGFloat(NotchGeometry.openRadius)
+                                         : CGFloat(NotchGeometry.closedRadius(notchHeight: model.notchSize.height)),
+                    shoulder: shoulder)
+    }
+
+    /// Closed and nothing to show: the island takes no room.
+    private var isIdle: Bool {
+        !model.isOpen && !model.near && !IslandController.shared.hasWings && !IslandController.shared.hasRing
+    }
 
     /// Closed island, mouse on the notch: the mascot rises from behind the pill. The clipped frame
     /// hides the part still behind the notch.
@@ -116,42 +128,37 @@ struct IslandRoot: View {
     /// What comes first: a dragged file, then what a person has to answer (Claude, a reminder),
     /// then a new screenshot, then what the island was doing anyway.
     private var showsPages: Bool {
-        !model.dragging && agent.pending.isEmpty && today.due.isEmpty && ScreenshotShelf.shared.latest == nil
+        !model.dragging && agent.pending.isEmpty && today.due.isEmpty && !AppUpdater.shared.offer && ScreenshotShelf.shared.latest == nil
             && !(Assistant.shared.visible && Prefs.shared.isOn(.assistant)) && StowModel.shared.isEmpty
     }
 
-    /// The top band of the open island, as high as the notch. Left of the notch the page tabs,
-    /// right of it the date and the settings. A single card leaves the band empty.
+    /// The top band of the open island, as high as the notch. Left of the notch: where can I go.
+    /// Right of it: where am I (the page's name), then the date and the settings. While arranging,
+    /// the right side says so and carries «Fertig». A single card leaves the band empty.
     @ViewBuilder private var band: some View {
         if showsPages {
             HStack(spacing: 0) {
-                Group {
+                // A ZStack, not a Group: without tabs it still takes its half, and the notch stays in the middle.
+                ZStack(alignment: .leading) {
+                    Color.clear
                     if Prefs.shared.islandNavigation.placement == .besideNotch {
                         GeometryReader { geo in
                             let pages = IslandModel.Page.available.count
                             let tab = IslandNavLayout.tabMinWidth(count: pages, available: geo.size.width)
-                            IslandPageTabs(page: $model.page, showsTitle: false, minWidth: tab)
+                            IslandPageTabs(page: $model.page, showsTitle: false, minWidth: tab, height: model.bandHeight)
                                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
                         }
                     }
                 }
                 .background { pageShortcuts }
-                .frame(maxWidth: .infinity, alignment: .leading)
                 // The notch itself: nothing can be shown there.
                 Color.clear.frame(width: model.notchSize.width)
-                HStack(spacing: Space.xs) {
-                    if Prefs.shared.islandNavigation.showsDate {
-                        ViewThatFits(in: .horizontal) {
-                            dateLabel
-                            EmptyView()
-                        }
-                    }
-                    if Prefs.shared.islandNavigation.showsSettings { IslandIconButton(symbol: "gearshape", label: "Einstellungen", size: 24) {
-                        AppActions.openSettings()
-                    } }
+                ZStack {
+                    Color.clear
+                    bandTrailing.padding(.leading, Space.sm)
                 }
-                .frame(maxWidth: .infinity, alignment: .trailing)
             }
+            .gridProbe("band", area: "island")
             .padding(.horizontal, Metrics.islandPadding)
             .frame(height: model.bandHeight)
         } else {
@@ -159,16 +166,57 @@ struct IslandRoot: View {
         }
     }
 
+    @ViewBuilder private var bandTrailing: some View {
+        HStack(spacing: Space.xs) {
+            if model.arranging {
+                Text("Kacheln anordnen").font(TypeStyle.islandTitle).lineLimit(1)
+                Spacer(minLength: Space.xs)
+                IslandPillButton(title: "Fertig", kind: .primary) { model.arranging = false }
+                    .help("Anordnen beenden")
+            } else {
+                // The name follows the pointer over the symbols: tooltips do not show in a panel that is not active.
+                if bandNamesPage {
+                    let page = model.hoveredPage ?? model.page
+                    Text(page.navigationTitle)
+                        .font(TypeStyle.islandTitle)
+                        .foregroundStyle(model.hoveredPage == nil ? IslandColor.primaryText : IslandColor.secondaryText)
+                        .lineLimit(1)
+                        .layoutPriority(2)
+                        .accessibilityAddTraits(.isHeader)
+                }
+                Spacer(minLength: Space.xs)
+                if Prefs.shared.islandNavigation.showsDate {
+                    ViewThatFits(in: .horizontal) {
+                        dateLabel
+                        Color.clear.frame(width: 0, height: 0)
+                    }
+                }
+                if Prefs.shared.islandNavigation.showsSettings {
+                    IslandIconButton(symbol: "gearshape", label: "Einstellungen öffnen", size: 24) { AppActions.openSettings() }
+                        .layoutPriority(3)
+                }
+            }
+        }
+    }
+
+    /// Tabs above the tiles that carry names already say where you are.
+    private var bandNamesPage: Bool {
+        let navigation = Prefs.shared.islandNavigation
+        return navigation.placement == .besideNotch || navigation.labels == .icons
+    }
+
     /// Concave shoulders where the island meets the menu bar, sized from the notch; none when idle.
     private var shoulder: CGFloat {
-        let visible = model.isOpen || model.near || IslandController.shared.hasWings || IslandController.shared.hasRing
-        return visible ? CGFloat(NotchGeometry.shoulder(notchHeight: model.notchSize.height, open: model.isOpen)) : 0
+        return !isIdle ? CGFloat(NotchGeometry.shoulder(notchHeight: model.notchSize.height, open: model.isOpen)) : 0
     }
 
     @ViewBuilder private var openContent: some View {
         VStack(alignment: .leading, spacing: Space.sm) {
             if showsPages && Prefs.shared.islandNavigation.placement == .aboveTiles {
-                IslandPageTabs(page: $model.page, showsTitle: Prefs.shared.islandNavigation.labels != .icons)
+                // Nine named tabs are wider than the island: they scroll instead of running past its edge.
+                ScrollView(.horizontal, showsIndicators: false) {
+                    IslandPageTabs(page: $model.page, showsTitle: Prefs.shared.islandNavigation.labels != .icons)
+                }
             }
             if model.dragging {
                 DropZones()
@@ -181,6 +229,8 @@ struct IslandRoot: View {
                                             removal: .opacity))
             } else if let task = today.due.first {
                 ReminderCard(task: task)
+            } else if AppUpdater.shared.offer {
+                UpdateCard()
             } else if ScreenshotShelf.shared.latest != nil {
                 ScreenshotCard()
             } else if Assistant.shared.visible && Prefs.shared.isOn(.assistant) {
@@ -188,16 +238,14 @@ struct IslandRoot: View {
             } else if !StowModel.shared.isEmpty {
                 StowPanel()
             } else {
-                switch IslandModel.Page.reachable.contains(model.page) ? model.page : .home {
-                case .home: TileStrip(category: .start)
-                case .mac: TileStrip(category: .mac)
-                case .ai: TileStrip(category: .ai)
-                case .tools: TileStrip(category: .tools)
-                case .today: TodayView(compact: true)
-                case .claude: ClaudePage()
-                case .files: FilesPage()
-                case .downloads: DownloadPage()
-                case .assistant: AssistantCard()
+                // A page comes in from the side it lives on in the tabs; the old one only fades.
+                ZStack(alignment: .topLeading) {
+                    pageContent
+                        .id(model.page)
+                        .transition(.asymmetric(
+                            insertion: reduceMotion ? .opacity
+                                : .opacity.combined(with: .offset(x: model.pageForward ? Motion.pageTravel : -Motion.pageTravel)), // grid: ok transition, not layout
+                            removal: .opacity.animation(Motion.contentOut)))
                 }
             }
             if let toast = model.toast { ToastRow(toast: toast) }
@@ -213,9 +261,23 @@ struct IslandRoot: View {
         }
     }
 
-    /// ⌘1 … ⌘6 pick a page. Invisible buttons that only carry the shortcuts.
+    @ViewBuilder private var pageContent: some View {
+        switch IslandModel.Page.reachable.contains(model.page) ? model.page : .home {
+        case .home: TileStrip(category: .start)
+        case .mac: TileStrip(category: .mac)
+        case .ai: TileStrip(category: .ai)
+        case .tools: TileStrip(category: .tools)
+        case .today: TodayView(compact: true)
+        case .claude: ClaudePage()
+        case .files: FilesPage()
+        case .downloads: DownloadPage()
+        case .assistant: AssistantCard()
+        }
+    }
+
+    /// ⌘1 … ⌘9 pick a page. Invisible buttons that only carry the shortcuts.
     private var pageShortcuts: some View {
-        ForEach(Array(IslandModel.Page.available.enumerated()), id: \.element) { index, page in
+        ForEach(Array(IslandModel.Page.available.prefix(9).enumerated()), id: \.element) { index, page in
             Button(page.title) { model.page = page }
                 .keyboardShortcut(KeyEquivalent(Character("\(index + 1)")), modifiers: .command)
                 .opacity(0)
@@ -260,7 +322,8 @@ struct ClosedWings: View {
     static var halfWidth: CGFloat {
         guard let toast = IslandModel.shared.toast else { return Metrics.compactPillExtra }
         let width = (toast.text as NSString).size(withAttributes: [.font: NSFont.systemFont(ofSize: 11, weight: .medium)]).width
-        return width + Space.sm > Metrics.compactPillExtra ? min(Metrics.toastWingWidth, width + Space.sm) : Metrics.compactPillExtra
+        let needed = (width + Space.sm + Space.md).rounded(.up)
+        return needed > Metrics.compactPillExtra ? min(Metrics.toastWingWidth, needed) : Metrics.compactPillExtra
     }
 
     private var wingWidth: CGFloat { Self.halfWidth }
@@ -269,13 +332,15 @@ struct ClosedWings: View {
         TimelineView(.periodic(from: .now, by: tick)) { context in
             if IslandController.shared.hasWings {
                 // Something to show: the island grows sideways around the notch.
+                // Two wings of one width and the notch between them, nothing flexible: a Spacer here grew
+                // the pill to the whole panel, over the menus beside the notch.
                 HStack(spacing: 0) {
-                    left(context.date)
-                        .frame(width: wingWidth, alignment: .leading)
+                    ZStack { left(context.date) }
+                        .frame(width: wingWidth - Space.md, alignment: .leading)
                         .padding(.leading, Space.md)
-                    Spacer(minLength: model.notchSize.width - Space.md * 2)
-                    right(context.date)
-                        .frame(width: wingWidth, alignment: .trailing)
+                    Color.clear.frame(width: model.notchSize.width)
+                    ZStack { right(context.date) }
+                        .frame(width: wingWidth - Space.md, alignment: .trailing)
                         .padding(.trailing, Space.md)
                 }
                 .font(TypeStyle.islandCaption.weight(.medium))
@@ -546,7 +611,7 @@ struct DropZone: View {
         }
         .foregroundStyle(targeted ? IslandColor.onAccent : IslandColor.primaryText)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(targeted ? IslandColor.accent : IslandColor.card, in: RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
+        .background(targeted ? IslandColor.accentFill : IslandColor.card, in: RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
             .strokeBorder(IslandColor.separator, style: StrokeStyle(lineWidth: 1, dash: [5, 4])))
         .onDrop(of: [.fileURL], isTargeted: $targeted) { providers in
@@ -654,9 +719,8 @@ struct AgentRequestCard: View {
                     .lineLimit(3)
                     .textSelection(.enabled)
             }
+            // Ways to answer differently sit on their own row: the decision row stays short and never truncates.
             HStack(spacing: Space.sm) {
-                IslandPillButton(title: "Ablehnen", kind: .danger) { agent.answer(pending, .deny) }
-                    .keyboardShortcut(.cancelAction)
                 IslandPillButton(title: "Im Terminal") { agent.answerInTerminal(pending) }
                 if Prefs.shared.isOn(.voice) {
                     IslandIconButton(symbol: "mic", label: "Antwort sprechen", size: 24) {
@@ -671,16 +735,18 @@ struct AgentRequestCard: View {
                         }
                     }
                 }
-                // Not for risky commands: those are always asked, even in an automatic chat.
-                if pending.permission.warnings.isEmpty {
-                    IslandPillButton(title: "Chat automatisch") {
-                        agent.setAutoAllow(true, for: pending.event.sessionID)
-                        agent.answer(pending, .allow)
-                    }
-                    .help("Erlaubt alle weiteren Anfragen dieses Chats ohne Frage, bis Vibrant+ beendet wird. Riskante Befehle fragen weiter.")
-                } else if agent.autoAllowed.contains(pending.event.sessionID) {
-                    IslandPillButton(title: "Automatik aus") { agent.setAutoAllow(false, for: pending.event.sessionID) }
+                if agent.autoAllowRoots[pending.event.sessionID] != nil {
+                    IslandPillButton(title: "Automatik aus") { agent.stopAutoAllow(for: pending.event.sessionID) }
+                } else if let root = agent.autoAllowRoot(for: pending) {
+                    IslandPillButton(title: "Dateien automatisch") { agent.startAutoAllow(pending) }
+                        .help("Erlaubt diesem Chat, Dateien in \(root) zu lesen und zu ändern. Befehle, versteckte Dateien und alles ausserhalb fragen weiter.")
                 }
+                Spacer(minLength: 0)
+            }
+            HStack(spacing: Space.sm) {
+                IslandPillButton(title: "Ablehnen", kind: .danger) { agent.answer(pending, .deny) }
+                    .keyboardShortcut(.cancelAction)
+                    .help("Anfrage ablehnen (Esc)")
                 Spacer()
                 if pending.event.offersAlways {
                     IslandPillButton(title: "Immer erlauben", kind: .warm) { agent.answer(pending, .always) }
@@ -778,6 +844,63 @@ struct FlowChips: View {
     }
 }
 
+// MARK: - Update
+
+/// A newer Vibrant+ is out: what it brings, and the choice now, later or never for this version.
+struct UpdateCard: View {
+    private var updater = AppUpdater.shared
+
+    var body: some View {
+        HStack(alignment: .top, spacing: Space.md) {
+            Image(nsImage: NSApp.applicationIconImage)
+                .resizable().frame(width: 48, height: 48)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: Space.xs) {
+                Text("Vibrant+ \(updater.foundVersion ?? "") ist da").font(TypeStyle.islandTitle)
+                Text(detail)
+                    .font(TypeStyle.islandCaption).foregroundStyle(IslandColor.secondaryText)
+                    .lineLimit(2)
+                if let notes = updater.notes {
+                    Text(notes).font(TypeStyle.islandCaption).foregroundStyle(IslandColor.primaryText)
+                        .lineLimit(2).help(notes)
+                }
+                HStack(spacing: Space.sm) {
+                    IslandPillButton(title: "Überspringen") { updater.dismissOffer(skip: true) }
+                        .help("Diese Version nicht mehr anbieten. Eine neuere erscheint wieder.")
+                    if let url = updater.notesURL {
+                        IslandPillButton(title: "Neuheiten") { NSWorkspace.shared.open(url) }
+                            .help("Versionshinweise auf GitHub öffnen")
+                    }
+                    Spacer(minLength: 0)
+                    if busy {
+                        ProgressView().controlSize(.small)
+                    } else {
+                        IslandPillButton(title: "Später") { updater.dismissOffer(skip: false) }
+                            .keyboardShortcut(.cancelAction)
+                            .help("Morgen wieder fragen (Esc)")
+                        IslandPillButton(title: "Jetzt aktualisieren", kind: .primary) { updater.installFromOffer() }
+                            .keyboardShortcut(.return, modifiers: .command)
+                            .help("Laden, ersetzen und neu starten (⌘↩)")
+                    }
+                }
+                .padding(.top, Space.xs)
+            }
+        }
+        .padding(Space.md)
+        .islandSurface(tone: .warm)
+    }
+
+    private var busy: Bool { updater.status == .downloading }
+
+    private var detail: String {
+        switch updater.status {
+        case .downloading: "Wird geladen. Vibrant+ startet danach neu."
+        case .failed(let message): "Hat nicht geklappt: \(message)"
+        default: "Du hast \(updater.current). Vibrant+ wird ersetzt und startet neu, deine Daten bleiben."
+        }
+    }
+}
+
 // MARK: - Reminder
 
 struct ReminderCard: View {
@@ -806,28 +929,26 @@ extension AgentSession.Status {
     var needsAnswer: Bool { self == .needsPermission || self == .asking }
 }
 
-/// The island's page switcher, in the band beside the notch: one symbol per page, the chosen
-/// page as a pill that also carries its name and slides to the next one. `showsTitle: false`
-/// is the version for a narrow band (a wide notch): symbols only, the name as tooltip.
+/// The island's page switcher, in the band beside the notch: one symbol per page, the chosen one
+/// in Puls on a pill that slides to the next. `showsTitle: false` is the version beside the notch:
+/// symbols only, the band's other half says the name.
 struct IslandPageTabs: View {
     @Binding var page: IslandModel.Page
     var showsTitle = true
-    var minWidth: CGFloat = 28
+    var minWidth: CGFloat = IslandNavLayout.preferredTab
+    /// The whole band takes the click: the pointer is pushed against the display's edge up there.
+    var height: CGFloat = Space.xxl
     @Namespace private var pill
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    /// Light grounds: a tinted pill. Dark grounds and glass: a lighter pill.
-    private var pillColor: Color {
-        IslandColor.isGlass || IslandColor.scheme == .dark ? IslandColor.cardHover : IslandColor.card
-    }
 
     var body: some View {
+        let pages = IslandModel.Page.available
         HStack(spacing: 0) {
-            ForEach(IslandModel.Page.available, id: \.self) { p in
-                tab(p)
+            ForEach(Array(pages.enumerated()), id: \.element) { index, p in
+                tab(p, number: index + 1)
             }
         }
         .fixedSize(horizontal: showsTitle, vertical: true)
+        .onDisappear { IslandModel.shared.hoveredPage = nil }
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Seite")
         .contextMenu {
@@ -835,31 +956,42 @@ struct IslandPageTabs: View {
         }
     }
 
-    private func tab(_ p: IslandModel.Page) -> some View {
+    private func tab(_ p: IslandModel.Page, number: Int) -> some View {
         let selected = p == page
+        let hovered = IslandModel.shared.hoveredPage == p
         let named = showsTitle && Prefs.shared.islandNavigation.labels != .icons && (selected || Prefs.shared.islandNavigation.labels == .all)
         return Button {
-            withAnimation(reduceMotion ? nil : Motion.island) { page = p }
+            withAnimation(Motion.respecting(Motion.page)) { page = p }
         } label: {
             HStack(spacing: Space.xs) {
                 Image(systemName: p.symbol)
-                    .font(.system(size: minWidth >= 24 ? 11 : 10, weight: .semibold))
+                    .font(minWidth >= Space.xxl ? TypeStyle.islandTab : TypeStyle.islandTabSmall)
+                    .foregroundStyle(selected ? IslandColor.accentText : (hovered ? IslandColor.primaryText : IslandColor.secondaryText))
                 if named {
                     Text(p.navigationTitle).font(TypeStyle.islandCaption.weight(.semibold)).lineLimit(1).fixedSize()
+                        .foregroundStyle(selected || hovered ? IslandColor.primaryText : IslandColor.secondaryText)
                 }
             }
-            .foregroundStyle(selected ? IslandColor.primaryText : IslandColor.secondaryText)
-            .padding(.horizontal, selected && named ? Space.sm : 0)
-            .frame(minWidth: minWidth, minHeight: 24)
+            .padding(.horizontal, named ? Space.sm : 0)
+            .frame(minWidth: minWidth, minHeight: Space.xxl)
             .frame(maxWidth: named ? .infinity : minWidth)
             .background {
                 if selected {
-                    Capsule().fill(pillColor).matchedGeometryEffect(id: "pill", in: pill)
+                    Capsule().fill(IslandColor.cardHover).matchedGeometryEffect(id: "pill", in: pill)
+                } else if hovered {
+                    Capsule().fill(IslandColor.hoverVeil)
                 }
             }
+            .frame(height: height)
+            .contentShape(Rectangle())
         }
         .buttonStyle(IslandPressStyle())
-        .help(p.navigationTitle)
+        // Hover only names the page; a click or a key selects it.
+        .onHover { inside in
+            let model = IslandModel.shared
+            if inside { model.hoveredPage = p } else if model.hoveredPage == p { model.hoveredPage = nil }
+        }
+        .help(number <= 9 ? "\(p.navigationTitle) zeigen (⌘\(number))" : "\(p.navigationTitle) zeigen")
         .accessibilityLabel(p.navigationTitle)
         .accessibilityAddTraits(selected ? [.isSelected] : [])
     }

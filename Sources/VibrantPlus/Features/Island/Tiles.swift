@@ -9,8 +9,8 @@ import VibrantPlusKit
 struct TileStrip: View {
     var category: TileCategory = .start
     private var prefs = Prefs.shared
-    /// The tile nearest the leading edge: pages the strip and follows the trackpad.
-    @State private var position: TileKind?
+    /// Pages the strip for the arrows; the trackpad moves it freely.
+    @State private var position = ScrollPosition(edge: .leading)
     @State private var offset: CGFloat = 0
     @State private var contentWidth: CGFloat = 1
     @State private var frameWidth: CGFloat = 1
@@ -41,13 +41,14 @@ struct TileStrip: View {
                         }
                     }
                 }
-                .scrollTargetLayout()
                 // Measured while it lays out, so the arrows and the line are there on the first
                 // frame instead of appearing a moment later.
                 .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { contentWidth = $0 }
+                // Few tiles gather under the notch, on its axis, instead of leaving one half empty.
+                .frame(minWidth: frameWidth, alignment: .center)
             }
             .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { frameWidth = $0 }
-            .scrollPosition(id: $position, anchor: .leading)
+            .scrollPosition($position)
             .onScrollGeometryChange(for: ScrollFacts.self) { geo in
                 ScrollFacts(offset: geo.contentOffset.x, content: geo.contentSize.width, frame: geo.containerSize.width)
             } action: { _, facts in
@@ -62,51 +63,45 @@ struct TileStrip: View {
                 if facts.frame > 1 { frameWidth = facts.frame }
             }
             // A soft edge says «there is more», a line says how much, two arrows get there with a mouse.
-            .overlay(alignment: .leading) { edge(.leading) }
-            .overlay(alignment: .trailing) { edge(.trailing) }
-            .overlay(alignment: .leading) { arrow(-1, tiles) }
-            .overlay(alignment: .trailing) { arrow(1, tiles) }
+            // The edge is a mask, not a painted gradient: it works on glass too.
+            .mask { edgeFade }
+            .overlay(alignment: .leading) { arrow(-1) }
+            .overlay(alignment: .trailing) { arrow(1) }
             if more {
                 scrollLine
             }
         }
-        .overlay(alignment: .topTrailing) {
-            if IslandModel.shared.arranging {
-                IslandPillButton(title: "Fertig", kind: .primary) { IslandModel.shared.arranging = false }
-                    .padding(Space.xs)
-            }
-        }
     }
 
-    /// One step of the strip: the neighbouring tile, never past either end.
-    private func page(_ delta: Int, _ tiles: [TileKind]) {
-        guard !tiles.isEmpty else { return }
-        let current = position.flatMap { tiles.firstIndex(of: $0) } ?? 0
-        let next = min(max(current + delta, 0), tiles.count - 1)
-        guard next != current || position == nil else { return }
-        withAnimation(Motion.respecting(Motion.quick)) { position = tiles[next] }
+    /// One step of the arrows: what is in view, less a piece that stays for orientation.
+    private func page(_ direction: Int) {
+        let step = max(Metrics.tileWidth, frameWidth - Metrics.tileWidth / 2)
+        let target = min(max(0, contentWidth - frameWidth), max(0, offset + CGFloat(direction) * step))
+        withAnimation(Motion.respecting(Motion.page)) { position.scrollTo(x: target) }
     }
 
-    @ViewBuilder private func arrow(_ direction: Int, _ tiles: [TileKind]) -> some View {
-        let available = direction < 0 ? offset > 1 : offset + frameWidth < contentWidth - 1
-        if more && available {
+    @ViewBuilder private func arrow(_ direction: Int) -> some View {
+        if more && canScroll(direction) {
             IslandIconButton(symbol: direction < 0 ? "chevron.left" : "chevron.right",
-                             label: direction < 0 ? "Weitere Kacheln links" : "Weitere Kacheln rechts",
-                             size: 24) { page(direction, tiles) }
-                .padding(.horizontal, Space.xs)
+                             label: direction < 0 ? "Weitere Kacheln links zeigen" : "Weitere Kacheln rechts zeigen",
+                             size: 24) { page(direction) }
+                // Solid: it floats over cut-off tiles.
+                .background(Color(hex: Brand.black), in: Circle())
                 .transition(.opacity)
         }
     }
 
-    @ViewBuilder private func edge(_ side: HorizontalEdge) -> some View {
-        let available = side == .leading ? offset > 1 : offset + frameWidth < contentWidth - 1
-        if more && available && !IslandColor.isGlass {
-            let colors: [Color] = side == .leading
-                ? [IslandColor.background, IslandColor.background.opacity(0)]
-                : [IslandColor.background.opacity(0), IslandColor.background]
-            LinearGradient(colors: colors, startPoint: .leading, endPoint: .trailing)
-                .frame(width: Space.xxl)
-                .allowsHitTesting(false)
+    private func canScroll(_ direction: Int) -> Bool {
+        direction < 0 ? offset > 1 : offset + frameWidth < contentWidth - 1
+    }
+
+    private var edgeFade: some View {
+        HStack(spacing: 0) {
+            LinearGradient(colors: [more && canScroll(-1) ? .clear : .black, .black], startPoint: .leading, endPoint: .trailing)
+                .frame(width: Space.section)
+            Color.black
+            LinearGradient(colors: [.black, more && canScroll(1) ? .clear : .black], startPoint: .leading, endPoint: .trailing)
+                .frame(width: Space.section)
         }
     }
 
@@ -198,12 +193,11 @@ struct NowPlayingTile: View {
                     }
                 }
             } else {
-                VStack(alignment: .leading, spacing: Space.sm) {
+                VStack(alignment: .leading, spacing: Space.xs) {
                     CardHeader(title: "Musik", symbol: "music.note")
-                    Spacer()
-                    Text(music.automationDenied ? "Erlaube Vibrant+ die Automation für Musik oder Spotify." : "Nichts läuft gerade")
-                        .font(TypeStyle.islandBody).foregroundStyle(IslandColor.secondaryText)
-                    Text("Spotify oder Musik starten").font(TypeStyle.islandCaption).foregroundStyle(IslandColor.tertiaryText)
+                    IslandEmpty(symbol: "music.note",
+                                text: music.automationDenied ? "Erlaube Vibrant+ die Automation für Musik oder Spotify."
+                                                             : "Nichts läuft gerade. Starte Musik oder Spotify.")
                 }
             }
         }
@@ -272,9 +266,7 @@ struct AgentTile: View {
                             .font(TypeStyle.islandCaption).foregroundStyle(IslandColor.accentText)
                     }
                 } else {
-                    Spacer()
-                    Text("Starte Claude Code in einem Terminal. Hier erscheint, was es tut.")
-                        .font(TypeStyle.islandBody).foregroundStyle(IslandColor.secondaryText)
+                    IslandEmpty(symbol: "sparkles", text: "Starte Claude Code in einem Terminal. Hier erscheint, was es tut.")
                 }
             }
         }
@@ -309,8 +301,7 @@ struct NextEventTile: View {
                         Text(e.start, format: .dateTime.hour().minute()).font(TypeStyle.islandCaption).foregroundStyle(IslandColor.tertiaryText)
                     }
                 } else {
-                    Spacer()
-                    Text("Heute nichts mehr geplant").font(TypeStyle.islandBody).foregroundStyle(IslandColor.secondaryText)
+                    IslandEmpty(symbol: "calendar", text: "Heute nichts mehr geplant")
                 }
             }
         }
@@ -331,7 +322,7 @@ struct WeatherTile: View {
 
     var body: some View {
         IslandCard {
-            VStack(alignment: .leading, spacing: Space.xs) {
+            VStack(alignment: .leading, spacing: 2) {
                 CardHeader(title: weather.current?.place ?? "Wetter", symbol: "location")
                 if let w = weather.current {
                     let d = WeatherCode.describe(w.code, isDay: w.isDay)
@@ -434,7 +425,7 @@ struct MonthGrid: View {
                     .font(TypeStyle.islandMicroNumber.weight(d == today ? .bold : .regular))
                     .foregroundStyle(d == today ? IslandColor.onAccent : IslandColor.secondaryText)
                     .frame(width: 16, height: 12)
-                    .background(d == today ? IslandColor.accent : .clear, in: Capsule())
+                    .background(d == today ? IslandColor.accentFill : .clear, in: Capsule())
             }
         }
         .accessibilityHidden(true)
@@ -532,9 +523,8 @@ struct TimerTile: View {
                         ForEach([[1, 5], [10, 25]], id: \.self) { row in
                             GridRow {
                                 ForEach(row, id: \.self) { m in
-                                    IslandPillButton(title: "\(m)′") { timer.start(minutes: Double(m)) }
-                                        .accessibilityLabel("\(m) Minuten")
-                                        .gridCellAnchor(.leading)
+                                    IslandPillButton(title: "\(m) Min.", expands: true) { timer.start(minutes: Double(m)) }
+                                        .accessibilityLabel("Timer für \(m) Minuten starten")
                                 }
                             }
                         }
@@ -579,10 +569,7 @@ struct ShelfTile: View {
                     }
                 }
                 if shelf.files.isEmpty {
-                    Spacer()
-                    Text("Dateien hierher ziehen, später wieder herausziehen.")
-                        .font(TypeStyle.islandCaption).foregroundStyle(IslandColor.secondaryText)
-                    Spacer()
+                    IslandEmpty(symbol: "tray.and.arrow.down", text: "Dateien hierher ziehen, später wieder herausziehen.")
                 } else {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: Space.sm) {
@@ -658,9 +645,7 @@ struct ClipboardTile: View {
                         .buttonStyle(.plain).font(TypeStyle.islandLabel).foregroundStyle(IslandColor.accentText)
                 }
                 if clip.items.isEmpty {
-                    Spacer()
-                    Text("Kopiertes erscheint hier. Nur Angeheftetes wird gespeichert.")
-                        .font(TypeStyle.islandCaption).foregroundStyle(IslandColor.secondaryText)
+                    IslandEmpty(symbol: "doc.on.clipboard", text: "Kopiertes erscheint hier. Nur Angeheftetes wird gespeichert.")
                 } else {
                     ForEach(clip.items.prefix(4)) { item in
                         Button { clip.copy(item); IslandModel.shared.show(Toast(symbol: "doc.on.doc", text: "Kopiert")) } label: {
@@ -685,6 +670,9 @@ struct RecentAppsTile: View {
         IslandCard {
             VStack(alignment: .leading, spacing: Space.sm) {
                 CardHeader(title: "Letzte Apps", symbol: "square.stack")
+                if recent.apps.isEmpty {
+                    IslandEmpty(symbol: "square.stack", text: "Apps, die du benutzt, erscheinen hier.")
+                }
                 LazyVGrid(columns: Array(repeating: GridItem(.fixed(28), spacing: Space.xs), count: 4), spacing: Space.xs) {
                     ForEach(recent.apps.prefix(8), id: \.processIdentifier) { app in
                         Button { app.activate() } label: {
@@ -736,7 +724,7 @@ struct ControlsTile: View {
             VStack(spacing: 2) {
                 Image(systemName: symbol).font(.system(size: 12, weight: .semibold))
                     .frame(width: 32, height: 24)
-                    .background(on ? IslandColor.accent : IslandColor.cardHover, in: RoundedRectangle(cornerRadius: Radius.chip))
+                    .background(on ? IslandColor.accentFill : IslandColor.cardHover, in: RoundedRectangle(cornerRadius: Radius.chip))
                     .foregroundStyle(on ? IslandColor.onAccent : IslandColor.primaryText)
                 Text(title).font(TypeStyle.islandMicro).foregroundStyle(IslandColor.secondaryText).lineLimit(1)
             }
@@ -759,9 +747,7 @@ struct ShortcutsTile: View {
             VStack(alignment: .leading, spacing: Space.sm) {
                 CardHeader(title: "Kurzbefehle", symbol: "bolt.fill")
                 if prefs.shortcutButtons.isEmpty {
-                    Spacer()
-                    Text("Wähle in den Einstellungen unter Insel, welche Kurzbefehle hier erscheinen.")
-                        .font(TypeStyle.islandCaption).foregroundStyle(IslandColor.secondaryText)
+                    IslandEmpty(symbol: "bolt", text: "Wähle in den Einstellungen unter Insel, welche Kurzbefehle hier erscheinen.")
                 } else {
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: Space.xs), GridItem(.flexible(), spacing: Space.xs)], spacing: Space.xs) {
                         ForEach(prefs.shortcutButtons) { b in

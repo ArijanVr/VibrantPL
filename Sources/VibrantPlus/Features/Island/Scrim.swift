@@ -18,10 +18,10 @@ final class ScrimController {
         guard Prefs.shared.dimAround else { return }
         let p = panel ?? make()
         p.setFrame(screen.frame, display: false)
-        let glass = IslandColor.isGlass && !NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency
+        let glass = IslandTheme.shared.drawsGlass
         effect?.isHidden = !glass
         effect?.maskImage = Self.fallingMask(size: screen.frame.size)
-        tint?.rootView = ScrimTint(palette: IslandTheme.shared.palette, style: IslandTheme.shared.style)
+        tint?.rootView = ScrimTint(style: IslandTheme.shared.style)
         p.order(.below, relativeTo: island.windowNumber)
         NSAnimationContext.runAnimationGroup { ctx in
             ctx.duration = Motion.duration(Motion.panelIn)
@@ -57,7 +57,7 @@ final class ScrimController {
         e.state = .active
         e.autoresizingMask = [.width, .height]
         root.addSubview(e)
-        let host = NSHostingView(rootView: ScrimTint(palette: IslandTheme.shared.palette, style: IslandTheme.shared.style))
+        let host = NSHostingView(rootView: ScrimTint(style: IslandTheme.shared.style))
         host.sizingOptions = []
         host.autoresizingMask = [.width, .height]
         root.addSubview(host)
@@ -83,15 +83,11 @@ final class ScrimController {
 
 /// The colored wash. Radial from the notch, so it reads as light falling from the island.
 struct ScrimTint: View {
-    var palette: IslandPalette
     var style: IslandStyle
 
     var body: some View {
         GeometryReader { geo in
-            let color: Color = switch style {
-            case .notch: .black
-            case .glass: palette.scheme == .dark ? .black : .white
-            }
+            let color = Color.black
             let strength: Double = switch style {
             case .notch: 0.45
             case .glass: 0.18

@@ -38,6 +38,14 @@ struct QuitAppsTile: View {
                         VStack(spacing: Space.xs) {
                             ForEach(apps, id: \.processIdentifier) { app in row(app) }
                         }
+                        .padding(.bottom, Space.lg)
+                    }
+                    // A list that goes on fades out instead of ending in half a row.
+                    .mask {
+                        VStack(spacing: 0) {
+                            Color.black
+                            LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom).frame(height: Space.lg)
+                        }
                     }
                 }
             }

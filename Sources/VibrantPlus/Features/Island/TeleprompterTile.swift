@@ -15,24 +15,21 @@ struct TeleprompterTile: View {
     var body: some View {
         IslandCard(width: Metrics.wideTileWidth - 64) {
             VStack(alignment: .leading, spacing: Space.xs) {
-                HStack {
-                    CardHeader(title: "Teleprompter", symbol: "text.alignleft")
-                    Spacer()
-                    IslandPillButton(title: started == nil ? "Start" : "Stopp", kind: .primary) {
-                        started = started == nil ? Date() : nil
-                    }
-                    .disabled(prefs.teleprompterText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                }
+                CardHeader(title: "Teleprompter", symbol: "text.alignleft")
                 if let start = started {
                     TimelineView(.animation(minimumInterval: 1 / 30)) { ctx in
                         // Reduce motion: no smooth scroll, the text advances in whole lines.
                         let raw = ctx.date.timeIntervalSince(start) * prefs.teleprompterSpeed
                         let y = reduceMotion ? (raw / 16).rounded(.down) * 16 : raw
-                        Text(prefs.teleprompterText)
-                            .font(TypeStyle.islandBody)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .offset(y: -y)
-                            .frame(maxHeight: .infinity, alignment: .top)
+                        // The whole script at its own height, behind a window: without fixedSize it was cut to three lines.
+                        Color.clear
+                            .overlay(alignment: .top) {
+                                Text(prefs.teleprompterText)
+                                    .font(TypeStyle.islandBody)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .offset(y: -y) // grid: ok motion
+                            }
                             .clipped()
                     }
                 } else {
@@ -41,11 +38,16 @@ struct TeleprompterTile: View {
                         .padding(.horizontal, Space.sm).padding(.vertical, Space.xs)
                         .background(IslandColor.field, in: RoundedRectangle(cornerRadius: Radius.chip))
                         .accessibilityLabel("Skript")
-                    HStack(spacing: Space.xs) {
-                        Text("Tempo").font(TypeStyle.islandLabel).foregroundStyle(IslandColor.tertiaryText)
-                        Slider(value: speed, in: 8...80).controlSize(.mini)
-                            .accessibilityLabel("Tempo")
+                    Spacer(minLength: 0)
+                }
+                HStack(spacing: Space.xs) {
+                    Text("Tempo").font(TypeStyle.islandLabel).foregroundStyle(IslandColor.tertiaryText)
+                    Slider(value: speed, in: 8...80).controlSize(.mini)
+                        .accessibilityLabel("Tempo")
+                    IslandPillButton(title: started == nil ? "Start" : "Stopp", kind: .primary) {
+                        started = started == nil ? Date() : nil
                     }
+                    .disabled(prefs.teleprompterText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
         }

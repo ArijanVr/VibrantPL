@@ -332,6 +332,8 @@ final class Prefs {
     var mascot: Bool { didSet { d.set(mascot, forKey: "island.mascot") } }
     /// A Puls outline lights up around the island when Claude starts, waits for the person or finishes.
     var islandGlow: Bool { didSet { d.set(islandGlow, forKey: "island.glow") } }
+    /// While the island is open, the light keeps travelling over its edge.
+    var glowWhileOpen: Bool { didSet { d.set(glowWhileOpen, forKey: "island.glowWhileOpen") } }
     var glowStyle: GlowStyle { didSet { d.set(glowStyle.rawValue, forKey: "island.glowStyle") } }
     /// The outline lights up on copy, paste, cut and undo (needs the keyboard permission).
     var shortcutEcho: Bool { didSet { d.set(shortcutEcho, forKey: "island.shortcutEcho") } }
@@ -350,6 +352,8 @@ final class Prefs {
     var mascotDragSound: String { didSet { d.set(mascotDragSound, forKey: "island.mascotDragSound") } }
     var mascotHeyPulsi: Bool { didSet { d.set(mascotHeyPulsi, forKey: "island.heyPulsi") } }
     var appAutoUpdate: Bool { didSet { d.set(appAutoUpdate, forKey: "app.autoUpdate") } }
+    /// A version the person chose «Überspringen» for: it is not offered again, a newer one is.
+    var appUpdateSkipped: String? { didSet { d.set(appUpdateSkipped, forKey: "app.updateSkipped") } }
     var appUpdateLastCheck: Date? {
         didSet { d.set(appUpdateLastCheck?.timeIntervalSince1970, forKey: "app.updateLastCheck") }
     }
@@ -478,6 +482,7 @@ final class Prefs {
         wideTiles = Set((d.stringArray(forKey: "tiles.wide") ?? []).compactMap(TileKind.init))
         mascot = d.object(forKey: "island.mascot") as? Bool ?? true
         islandGlow = d.object(forKey: "island.glow") as? Bool ?? true
+        glowWhileOpen = d.object(forKey: "island.glowWhileOpen") as? Bool ?? true
         glowStyle = GlowStyle(rawValue: d.string(forKey: "island.glowStyle") ?? "") ?? .wave
         shortcutEcho = d.object(forKey: "island.shortcutEcho") as? Bool ?? false
         screenshotsStay = d.bool(forKey: "screenshots.stay")
@@ -490,6 +495,7 @@ final class Prefs {
         mascotDragSound = d.string(forKey: "island.mascotDragSound") ?? "Purr"
         mascotHeyPulsi = d.bool(forKey: "island.heyPulsi")
         appAutoUpdate = d.bool(forKey: "app.autoUpdate")
+        appUpdateSkipped = d.string(forKey: "app.updateSkipped")
         if d.object(forKey: "app.updateLastCheck") != nil {
             appUpdateLastCheck = Date(timeIntervalSince1970: d.double(forKey: "app.updateLastCheck"))
         }

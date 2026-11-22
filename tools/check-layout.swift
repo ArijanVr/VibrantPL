@@ -1,7 +1,7 @@
+#!/usr/bin/env swift
 // SPDX-FileCopyrightText: 2026 ARJO LAB
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#!/usr/bin/env swift
 // Checks the layout files that snapshot mode writes next to each PNG.
 // Usage: swift tools/check-layout.swift [--unit 4] /tmp/VibrantPlus-shots/*-layout.json
 // --unit sets the grid step for rules 2 and 5. A design kit measured from

@@ -28,8 +28,8 @@ final class IslandModel {
             case .today: "Heute"
             case .claude: "Claude"
             case .files: "Ablage"
-            case .downloads: "Laden"
-            case .assistant: "Fragen"
+            case .downloads: "Downloads"
+            case .assistant: "Assistent"
             }
         }
         var symbol: String {
@@ -82,9 +82,18 @@ final class IslandModel {
 
     var isOpen = false
     var page: Page = .home {
+        willSet {
+            guard newValue != page else { return }
+            let pages = Page.available
+            if let from = pages.firstIndex(of: page), let to = pages.firstIndex(of: newValue) { pageForward = to > from }
+        }
         // Pages that are not tile strips have no end to swipe past: the neighbour is always reachable.
         didSet { if page.category == nil { atLeadingEdge = true; atTrailingEdge = true } }
     }
+    /// The last page change went to the right in the tabs: the new page comes in from there.
+    var pageForward = true
+    /// The tab under the pointer: the band names it.
+    var hoveredPage: Page?
     /// Whether the page's strip sits at its left / right end (or does not scroll at all):
     /// a swipe past that end goes to the neighbouring page.
     var atLeadingEdge = true
@@ -401,6 +410,7 @@ final class IslandController {
             model.isOpen = false
             model.dragging = false
             model.arranging = false
+            model.hoveredPage = nil
         }
         MirrorCamera.shared.stopIfUnused()
         model.sticky = false
@@ -417,7 +427,7 @@ final class IslandController {
     /// reading it keeps it open; it then folds away as soon as the mouse leaves.
     func releaseStickyIfIdle() {
         guard model.isOpen, model.sticky else { return }
-        guard AgentStore.shared.pending.isEmpty, TodayStore.shared.due.isEmpty,
+        guard AgentStore.shared.pending.isEmpty, TodayStore.shared.due.isEmpty, !AppUpdater.shared.offer,
               ScreenshotShelf.shared.latest == nil, StowModel.shared.isEmpty,
               !(Assistant.shared.visible && Prefs.shared.isOn(.assistant)) else { return }
         if pointerIsInside {
@@ -471,7 +481,7 @@ final class IslandController {
         guard let index = pages.firstIndex(of: model.page) else { return false }
         let target = index + (code == 124 ? 1 : -1)
         guard pages.indices.contains(target) else { return false }
-        withAnimation(Motion.respecting(Motion.island)) { model.page = pages[target] }
+        withAnimation(Motion.respecting(Motion.page)) { model.page = pages[target] }
         return true
     }
 
@@ -486,44 +496,62 @@ final class IslandController {
     }
 
     /// A two-finger swipe sideways past the end of a page's strip goes to the neighbouring page.
-    /// One page per gesture; mouse wheels (no gesture phase) never switch.
-    private var swipeSum: CGFloat = 0
+    /// One page per gesture; mouse wheels (no gesture phase) never switch. The axes are counted apart:
+    /// a swipe is one or the other, never a little of both added up.
+    private var swipeX: CGFloat = 0
+    private var swipeY: CGFloat = 0
     private var swipeDone = false
+    /// The gesture began over content that scrolls up and down: then it scrolls, and never closes the island.
+    private var swipeScrollsContent = false
     /// Whether the gesture started at an end of the strip, per direction (right, left).
     private var swipeFromLeading = false
     private var swipeFromTrailing = false
 
     private func handleScroll(_ e: NSEvent) {
-        guard model.isOpen, !model.dragging else { return }
+        guard model.isOpen, !model.dragging, let panel, e.window === panel else { return }
         if e.phase.contains(.began) || e.phase.contains(.mayBegin) {
-            swipeSum = 0
+            swipeX = 0
+            swipeY = 0
             swipeDone = false
             swipeFromLeading = model.atLeadingEdge
             swipeFromTrailing = model.atTrailingEdge
+            swipeScrollsContent = panel.contentView.map { Self.scrollsVertically(at: e.locationInWindow, in: $0) } ?? false
         }
         guard !e.phase.isEmpty, !swipeDone else { return }
         if abs(e.scrollingDeltaY) > abs(e.scrollingDeltaX) {
-            swipeSum += e.scrollingDeltaY
-            if swipeSum < -80 {
+            swipeY += e.scrollingDeltaY
+            // A waiting request is answered, not swiped away.
+            if swipeY < -80, abs(swipeY) > abs(swipeX), !swipeScrollsContent, AgentStore.shared.pending.isEmpty {
                 swipeDone = true
                 close()
             }
             return
         }
         guard abs(e.scrollingDeltaX) > abs(e.scrollingDeltaY) else { return }
-        swipeSum += e.scrollingDeltaX
+        swipeX += e.scrollingDeltaX
+        guard abs(swipeX) > abs(swipeY) else { return }
         let pages = IslandModel.Page.available
         guard let index = pages.firstIndex(of: model.page) else { return }
         // Fingers moving right pull the previous page in, moving left the next one.
         let target: Int
-        if swipeSum > 60, swipeFromLeading { target = index - 1 }
-        else if swipeSum < -60, swipeFromTrailing { target = index + 1 }
+        if swipeX > 60, swipeFromLeading { target = index - 1 }
+        else if swipeX < -60, swipeFromTrailing { target = index + 1 }
         else { return }
         guard pages.indices.contains(target) else { return }
         swipeDone = true
         model.atLeadingEdge = true
         model.atTrailingEdge = true
-        withAnimation(Motion.respecting(Motion.island)) { model.page = pages[target] }
+        withAnimation(Motion.respecting(Motion.page)) { model.page = pages[target] }
+    }
+
+    /// True when a list or text under the point (window coordinates) has more above or below.
+    static func scrollsVertically(at point: CGPoint, in view: NSView) -> Bool {
+        if let scroll = view as? NSScrollView, let document = scroll.documentView,
+           scroll.convert(scroll.bounds, to: nil).contains(point),
+           document.frame.height > scroll.contentView.bounds.height + 1 {
+            return true
+        }
+        return view.subviews.contains { !$0.isHidden && scrollsVertically(at: point, in: $0) }
     }
 
     private func handle(_ type: NSEvent.EventType, global: Bool) {

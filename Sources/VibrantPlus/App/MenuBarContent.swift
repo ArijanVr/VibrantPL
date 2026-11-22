@@ -101,7 +101,7 @@ struct MenuBarContent: View {
                 }
                 Divider()
                 if prefs.isOn(.island) {
-                    Button("Seite «Laden» öffnen") {
+                    Button("Seite «Downloads» öffnen") {
                         withAnimation(Motion.respecting(Motion.island)) { IslandController.shared.open(page: .downloads) }
                     }
                 }

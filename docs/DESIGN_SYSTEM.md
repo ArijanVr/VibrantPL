@@ -8,6 +8,9 @@ Leitsatz: «Grau trägt. Puls zeigt.» Grau für Flächen und Text, ein einziger
 
 | Token | Wert | Verwendung |
 |---|---|---|
+| `Brand.pulsLight` | #EC6FA2 | Puls als Text und Symbol auf Graphit (5,1 : 1) |
+| `Brand.pulsGlass` | #FFB8D5 | Puls als Text und Symbol auf Rauchglas (mindestens 4,6 : 1) |
+| `Brand.pulsInk` | #C9326F | Puls-Fläche, die Text trägt (`accentFill`, 4,95 : 1) |
 | `Brand.puls` | #D63C7A | Akzent: Ereignis-Punkt, Fokus, Status, Titel-Punkt. Gleich in Hell und Dunkel. Nie Fliesstext. |
 | `Brand.offWhite` | #FDFDFC | Hintergrund hell, Karte hell, Text dunkel |
 | `Brand.grouped` | #F0F0EE | Gruppenfläche, Seitenleiste hell |
@@ -17,7 +20,7 @@ Leitsatz: «Grau trägt. Puls zeigt.» Grau für Flächen und Text, ein einziger
 | `Brand.grey` | #6B6E6D | Sekundärtext hell, Rand Bedienelement |
 | `Brand.lightGrey` | #D9DAD8 | Sekundärtext dunkel |
 
-Die Insel ist immer Schwarz (`IslandPalette.notch`), in Hell und Dunkel, offen wie geschlossen. Karten darin sind Graphit (55 %, Hover 85 %).
+Die Insel ist immer Schwarz (`IslandPalette.notch`), in Hell und Dunkel, offen wie geschlossen. Karten darin sind Graphit 55 %; Hover legt einen Schleier darüber (`hoverVeil`), damit Knöpfe auf der Karte sichtbar bleiben.
 
 Kontrast (WCAG 2.2): Puls auf Off-White 4,31 : 1, Puls auf Schwarz 4,52 : 1 (UI ok, Text ok nur auf Schwarz). Text Schwarz auf Off-White 19,48 : 1.
 
@@ -29,8 +32,11 @@ Akzent der Fenster: «System» folgt der Mac-Akzentfarbe; ist sie «Mehrfarbig»
 
 ## Insel-Stil
 
-- «Notch-Schwarz» (Standard): die Insel in Schwarz, Graphit-Karten, Off-White-Text, Puls als Akzent.
-- «Liquid Glass»: `glassEffect(.regular)` von macOS 26. Hell: Text Schwarz, Karten Grau 9 %; dunkel: Text Off-White. Akzent Puls. «Transparenz reduzieren» ersetzt das Glas durch eine feste Fläche (Off-White hell, Schwarz dunkel).
+- «Notch-Schwarz» (Standard): die Insel in Schwarz, Graphit-Karten mit Lichtkante, Off-White-Text, Puls als Akzent.
+- «Liquid Glass»: Rauchglas, in Hell und Dunkel gleich. Das Band neben dem Notch bleibt deckend Schwarz und läuft über `Glass.melt` (24 pt) in Rauch (`Glass.smoke`, 65 %) auf `glassEffect(.regular)` aus. Geschlossen immer Schwarz.
+- Es gibt genau eine Glasschicht, den Inselkörper. Kacheln sind Scheiben darin: Füllung Weiss 8 %, Schimmer oben (`Glass.sheen`), Lichtkante von oben links. Nie `glassEffect` in einer Kachel (kein Glas auf Glas).
+- «Transparenz reduzieren» und «Kontrast erhöhen» ersetzen das Glas durch die schwarze Fassung (`IslandTheme.drawsGlass`).
+- Lesbarkeit gilt gegen den schlimmsten Grund, ein weisses Fenster hinter dem Glas: alle Textstufen mindestens 4,5 : 1. Wer `smoke`, `sheen` oder eine Textfarbe ändert, misst neu.
 - Der frühere Stil «ARJO Verspielt» (Pastellkarten) ist entfallen. Gespeicherte Auswahl fällt auf «Notch-Schwarz» zurück.
 
 ## Typografie
@@ -42,33 +48,39 @@ Die Brand-Schrift ist Geist (Geist Mono für Befehle). Im Code noch SF Pro (Syst
 - 4-pt-Raster (`Space`: 4, 8, 12, 16, 20, 24, 32; Ränder 20).
 - Radien nach Brandguide 06: Klein 6 (Chip, Badge), Bedienelement 8 (`Radius.control`), Karte 12 (`Radius.card`), Sheet 20. Insel 24 (Notch-Form, `Radius.island`).
 - Ein Schatten: Insel offen, Schwarz 32 %, Radius 20, y 8.
-- Karten in der Insel tragen eine 1-pt-Haarlinie, oben 10 %, unten 2 %. Nicht in «Liquid Glass» und nicht bei «Kontrast erhöhen».
+- Karten tragen eine 1-pt-Lichtkante (`rimLight`, `rimShade`), bei «Kontrast erhöhen» eine gleichmässige Linie.
+- Konzentrisch: Kartenradius 12 + Inselrand 12 = Inselradius 24. Kartenkopf immer 20 pt hoch (`Metrics.cardHeaderHeight`).
 
 ## Bewegung
 
 Quelle der Wahrheit ist `Motion` in `Tokens.swift`. Brandguide 12 nennt Dauern von 120 bis 400 ms und die Kurve (0,2 ; 0 ; 0 ; 1); der Code folgt weiterhin den Werten unten. Angleichen ist offen.
 
-- Insel öffnen: Feder (response 0.3, damping 0.84). Schliessen schneller: response 0.18, damping 1.0.
+- Insel öffnen: Feder (response 0.36, damping 0.86), Start bei 94 %. Schliessen schneller: response 0.22, damping 1.0.
+- Seitenwechsel: Feder (response 0.28, damping 1.0, kein Nachfedern). Die neue Seite kommt 16 pt aus der Richtung ihres Tabs.
 - Kleine Zustände (Hover, Zähler): easeOut 0.14 s. Ein-/Ausblenden: easeInOut 0.24 s.
-- Inhalt der Insel: ein 0.18 s nach 0.06 s, aus 0.08 s. Panels: ein 0.18 s, aus 0.14 s.
+- Inhalt der Insel: ein 0.2 s nach 0.04 s, aus 0.08 s. Panels: ein 0.18 s, aus 0.14 s.
 - Knöpfe: gedrückt 0.97 und etwas dunkler, 0.1 s; bei «Bewegung reduzieren» nur dunkler.
-- Alles über `Motion.respecting(_:)`: bei «Bewegung reduzieren» ohne Animation. Keine Daueranimation ausser dem Puls «Claude arbeitet» und dem Equalizer; beide stehen bei «Bewegung reduzieren» still.
+- Alles über `Motion.respecting(_:)`: bei «Bewegung reduzieren» ohne Animation. Keine Daueranimation ausser dem Puls «Claude arbeitet», dem Equalizer und dem Licht, das über die offene Insel fährt (hin und zurück, 2,4 s je Weg, abschaltbar); alle stehen bei «Bewegung reduzieren» still.
 
 ## Interaktionszustände
 
-Hover hebt Karten von 55 % auf 85 % Graphit; Primär = Puls-Fläche mit Off-White-Text, Warm = Puls, Gefahr = Puls 35 %. Tastatur: ⌘↩ = Erlauben (nie ↩ allein), Esc = Ablehnen in der Berechtigungskarte.
+Hover hellt auf und senkt nie den Kontrast; Primär = `accentFill` mit Off-White-Text, Warm = Puls 22 % (nie auffälliger als Primär), Gefahr = Puls 35 %. Leere Karten zeigen `IslandEmpty`. Tastatur: ⌘↩ = Erlauben (nie ↩ allein), Esc = Ablehnen in der Berechtigungskarte.
 
 ## Layout-Metriken
 
-Insel offen so gross wie ihr Inhalt: Seiten 648 pt breit, eine einzelne Karte 520 pt; Höhe nach Inhalt (max. 520). Kachel 152 × 128, breite Kachel 312, Heute-Karte 152 × 148. Das Band neben dem Notch ist so hoch wie der Notch (mindestens 32). Rand-Regler: Lasche 6 × 132, Panel 300 breit.
+Insel offen so gross wie ihr Inhalt: Seiten 656 pt breit (632 Inhalt), eine einzelne Karte 520 pt; Höhe nach Inhalt (max. 520). Kachel 152 × 128, breite Kachel 312, Heute-Karte 152 × 148. Das Band neben dem Notch ist so hoch wie der Notch (mindestens 32). Rand-Regler: Lasche 6 × 132, Panel 300 breit.
 
-## Seiten-Tabs der Insel
+## Navigation der Insel
 
-`IslandPageTabs` sitzen im Band links neben dem Notch, rechts davon Datum und Einstellungen. Je Seite ein Symbol, die gewählte Seite als Pille mit Namen (hell: Kartenfarbe, dunkel und Glas: Hover-Ton); ist das Band zu schmal, nur Symbole. ⌘1–⌘6 wählen die Seite, Esc schliesst die Insel.
+- Links vom Notch «Wohin kann ich»: ein Symbol je Seite (`IslandPageTabs`), die gewählte in Puls auf einer Pille. Die Klickfläche ist so hoch wie das Band.
+- Rechts vom Notch «Wo bin ich»: Seitenname, dann Datum und Einstellungen. Liegt der Zeiger auf einem Symbol, steht dort dessen Name; Hover wählt nie. Fehlt Platz, weicht zuerst das Datum.
+- Beim Anordnen steht rechts «Kacheln anordnen» mit «Fertig».
+- Wege: Klick, ⌘1 bis ⌘9, ← und →, Wischen seitwärts am Rand der Reihe. Zurück: Esc, Klick daneben, Wischen nach unten (nicht über scrollbarem Inhalt, nicht bei wartender Anfrage).
+- Namen, je einer pro Seite: Start, Mac, KI, Werkzeuge, Heute, Claude, Ablage, Downloads (nicht «Laden»), Assistent (nicht «Fragen»).
 
 ## Öffnen mit der Maus
 
-Die Insel öffnet erst, wenn der Zeiger ganz oben am Bildschirmrand im Notch liegt (oberste 12 pt, `NotchGeometry.isOnTopEdge`) und dort 40 ms bleibt. Dateien an den Notch ziehen öffnet wie bisher.
+Die Insel öffnet erst, wenn der Zeiger ganz oben am Bildschirmrand im Notch liegt (oberste 4 pt, `NotchGeometry.isOnTopEdge`) und dort 200 ms bleibt. Dateien an den Notch ziehen öffnet wie bisher.
 
 ## Icon und Marke
 

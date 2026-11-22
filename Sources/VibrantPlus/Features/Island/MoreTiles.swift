@@ -24,7 +24,7 @@ struct TemperatureCurve: View {
                 line.stroke(IslandColor.accent, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
             }
         }
-        .frame(height: 20)
+        .frame(height: 16)
         .accessibilityElement()
         .accessibilityLabel("Temperatur der nächsten \(hours.count) Stunden")
         .accessibilityValue("von \(Int((hours.min() ?? 0).rounded())) bis \(Int((hours.max() ?? 0).rounded())) Grad")
@@ -308,11 +308,11 @@ struct ColorPickerTile: View {
 
     var body: some View {
         IslandCard {
-            VStack(alignment: .leading, spacing: Space.sm) {
+            VStack(alignment: .leading, spacing: Space.xs) {
                 CardHeader(title: "Farbpipette", symbol: "eyedropper")
                 if colors.recent.isEmpty {
-                    Text("Farbe vom Bildschirm aufnehmen. Das Format steht unter den letzten Farben.")
-                        .font(TypeStyle.islandCaption).foregroundStyle(IslandColor.secondaryText)
+                    Text("Nimm eine Farbe vom Bildschirm auf.")
+                        .font(TypeStyle.islandCaption).foregroundStyle(IslandColor.secondaryText).lineLimit(2)
                 } else {
                     HStack(spacing: Space.xs) {
                         ForEach(colors.recent, id: \.self) { hex in
@@ -326,13 +326,19 @@ struct ColorPickerTile: View {
                             .accessibilityLabel("Farbe \(hex) kopieren")
                         }
                     }
-                    Text(ColorHex.copyString(colors.recent[0], format: Prefs.shared.colorCopyFormat))
-                        .font(TypeStyle.islandCode).foregroundStyle(IslandColor.secondaryText)
+                    let code = ColorHex.copyString(colors.recent[0], format: Prefs.shared.colorCopyFormat)
+                    HStack(spacing: Space.xs) {
+                        Text(code).font(TypeStyle.islandCode).foregroundStyle(IslandColor.secondaryText)
+                            .lineLimit(1).truncationMode(.tail).help(code)
+                        Spacer(minLength: 0)
+                        Picker("Format", selection: Binding(get: { Prefs.shared.colorCopyFormat }, set: { Prefs.shared.colorCopyFormat = $0 })) {
+                            ForEach(ColorHex.CopyFormat.allCases, id: \.self) { Text($0.title).tag($0) }
+                        }
+                        .labelsHidden()
+                        .controlSize(.mini)
+                        .fixedSize()
+                    }
                 }
-                Picker("Format", selection: Binding(get: { Prefs.shared.colorCopyFormat }, set: { Prefs.shared.colorCopyFormat = $0 })) {
-                    ForEach(ColorHex.CopyFormat.allCases, id: \.self) { Text($0.title).tag($0) }
-                }
-                .labelsHidden()
                 Spacer(minLength: 0)
                 IslandPillButton(title: "Aufnehmen", kind: .primary) { colors.pick() }
             }

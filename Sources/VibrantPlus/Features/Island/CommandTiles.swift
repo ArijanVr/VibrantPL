@@ -44,7 +44,7 @@ struct CommandsTile: View {
                 HStack(spacing: Space.xs) {
                     TextField("Befehl, z. B. git status -sb", text: $draft)
                         .textFieldStyle(.plain).font(TypeStyle.islandCaption)
-                        .padding(.horizontal, Space.sm).padding(.vertical, 3)
+                        .padding(.horizontal, Space.sm).padding(.vertical, Space.xs)
                         .background(IslandColor.field, in: RoundedRectangle(cornerRadius: Radius.chip))
                         .onSubmit(save)
                     IslandPillButton(title: "Sichern", action: save)
@@ -83,29 +83,28 @@ struct BrowserTabTile: View {
     var body: some View {
         IslandCard(width: Metrics.wideTileWidth - 64) {
             VStack(alignment: .leading, spacing: Space.xs) {
-                HStack {
-                    CardHeader(title: "Browser-Tab", symbol: "safari")
-                    Spacer()
-                    IslandIconButton(symbol: "playpause.fill", label: "Wiedergabe oder Pause", size: 24) { MediaKey.playPause() }
-                    IslandPillButton(title: "Lesen", kind: .primary, action: read)
-                }
+                CardHeader(title: "Browser-Tab", symbol: "safari")
                 if let tab {
-                    Text(tab.title).font(TypeStyle.islandBody.weight(.medium)).lineLimit(2)
-                    Text(tab.url).font(TypeStyle.islandCaption).foregroundStyle(IslandColor.secondaryText).lineLimit(1)
-                    Spacer(minLength: 0)
-                    HStack(spacing: Space.xs) {
-                        IslandPillButton(title: "Link kopieren") {
+                    Text(tab.title).font(TypeStyle.islandBody.weight(.medium)).lineLimit(1).help(tab.title)
+                    Text(tab.url).font(TypeStyle.islandCaption).foregroundStyle(IslandColor.secondaryText).lineLimit(1).help(tab.url)
+                } else {
+                    Text(note).font(TypeStyle.islandCaption).foregroundStyle(IslandColor.secondaryText).lineLimit(2)
+                }
+                Spacer(minLength: 0)
+                HStack(spacing: Space.xs) {
+                    IslandPillButton(title: "Lesen", kind: .primary, action: read)
+                    if let tab {
+                        IslandIconButton(symbol: "link", label: "Link kopieren", size: 24) {
                             NSPasteboard.general.clearContents()
                             NSPasteboard.general.setString(tab.url, forType: .string)
                         }
-                        IslandPillButton(title: "Link bereinigt") {
+                        IslandIconButton(symbol: "sparkles.rectangle.stack", label: "Link ohne Tracking kopieren", size: 24) {
                             NSPasteboard.general.clearContents()
                             NSPasteboard.general.setString(CleanLink.clean(tab.url) ?? tab.url, forType: .string)
                         }
                     }
-                } else {
-                    Text(note).font(TypeStyle.islandCaption).foregroundStyle(IslandColor.secondaryText)
                     Spacer(minLength: 0)
+                    IslandIconButton(symbol: "playpause.fill", label: "Wiedergabe starten oder anhalten", size: 24) { MediaKey.playPause() }
                 }
             }
         }
@@ -149,7 +148,7 @@ enum MediaKey {
 struct MessageTile: View {
     @State private var to = ""
     @State private var text = ""
-    @State private var note = "Empfänger und Text, dann «Senden»."
+    @State private var note = "Über Nachrichten"
 
     var body: some View {
         IslandCard(width: Metrics.wideTileWidth - 64) {
@@ -158,7 +157,7 @@ struct MessageTile: View {
                 field("Nummer oder Apple-ID", $to)
                 field("Text", $text)
                 HStack {
-                    Text(note).font(TypeStyle.islandCaption).foregroundStyle(IslandColor.secondaryText).lineLimit(1)
+                    Text(note).font(TypeStyle.islandCaption).foregroundStyle(IslandColor.secondaryText).lineLimit(1).help(note)
                     Spacer()
                     IslandPillButton(title: "Senden", kind: .primary, action: send)
                         .disabled(to.trimmingCharacters(in: .whitespaces).isEmpty || text.trimmingCharacters(in: .whitespaces).isEmpty)
@@ -170,7 +169,7 @@ struct MessageTile: View {
     private func field(_ title: String, _ value: Binding<String>) -> some View {
         TextField(title, text: value)
             .textFieldStyle(.plain).font(TypeStyle.islandCaption)
-            .padding(.horizontal, Space.sm).padding(.vertical, 3)
+            .padding(.horizontal, Space.sm).padding(.vertical, Space.xs)
             .background(IslandColor.field, in: RoundedRectangle(cornerRadius: Radius.chip))
     }
 

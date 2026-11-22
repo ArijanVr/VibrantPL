@@ -5,7 +5,7 @@ import AppKit
 import SwiftUI
 import VibrantPlusKit
 
-/// Island page «Laden»: paste a link, pick Video, Audio or Bild, load. The latest downloads beside it.
+/// Island page «Downloads»: paste a link, pick Video, Audio or Bild, load. The latest downloads beside it.
 struct DownloadPage: View {
     private var downloads = Downloads.shared
     @State private var prefs = Prefs.shared
@@ -29,7 +29,7 @@ struct DownloadPage: View {
     private var link: URL? { DownloadPlan.link(from: text) }
 
     private var input: some View {
-        IslandCard(width: inputWidth, height: Metrics.tileHeight + 44) {
+        IslandCard(width: inputWidth, height: Metrics.tileHeight + Space.section + Space.xl) {
             VStack(alignment: .leading, spacing: Space.sm) {
                 CardHeader(title: "Aus Link laden", symbol: "arrow.down.circle")
                 HStack(spacing: Space.xs) {
@@ -107,7 +107,7 @@ struct DownloadPage: View {
     }
 
     private var list: some View {
-        IslandCard(width: Metrics.islandContentWidth - inputWidth - Space.sm, height: Metrics.tileHeight + 44) {
+        IslandCard(width: Metrics.islandContentWidth - inputWidth - Space.sm, height: Metrics.tileHeight + Space.section + Space.xl) {
             VStack(alignment: .leading, spacing: Space.xs) {
                 HStack {
                     CardHeader(title: "Zuletzt", symbol: "clock.arrow.circlepath")

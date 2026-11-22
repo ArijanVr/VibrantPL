@@ -32,12 +32,25 @@ final class AgentStore {
     /// Hooks are in settings.json but point at another copy of the app (moved, or a release copy).
     private(set) var hooksOutdated = false
     var lastError: String?
-    /// Sessions whose permission requests are allowed without asking, until the app quits.
-    /// A request that carries a warning (delete, sudo, piped download) is always asked.
-    private(set) var autoAllowed: Set<String> = []
+    /// Session -> the project folder it had when the person chose «Dateien automatisch», until the app quits.
+    /// What that allows is decided by AutoAllowRules alone. The folder stays fixed: a later `cd` cannot widen it.
+    private(set) var autoAllowRoots: [String: String] = [:]
 
-    func setAutoAllow(_ on: Bool, for sessionID: String) {
-        if on { autoAllowed.insert(sessionID) } else { autoAllowed.remove(sessionID) }
+    /// The folder «Dateien automatisch» would cover, when this request is one it may allow.
+    func autoAllowRoot(for p: Pending) -> String? {
+        guard p.event.eventName == "PermissionRequest", let root = p.event.cwd,
+              AutoAllowRules.mayAllow(tool: p.event.toolName, input: p.event.toolInput, root: root) else { return nil }
+        return root
+    }
+
+    func startAutoAllow(_ p: Pending) {
+        guard let root = autoAllowRoot(for: p) else { return }
+        autoAllowRoots[p.event.sessionID] = root
+        answer(p, .allow)
+    }
+
+    func stopAutoAllow(for sessionID: String) {
+        autoAllowRoots[sessionID] = nil
     }
 
     /// Called when something needs the person (opens the island).
@@ -104,8 +117,8 @@ final class AgentStore {
             return
         }
 
-        if request.wait && event.needsAnswer && !event.isQuestion && autoAllowed.contains(event.sessionID)
-            && PermissionDetail(tool: event.toolName ?? "", input: event.toolInput).warnings.isEmpty {
+        if request.wait, event.eventName == "PermissionRequest", let root = autoAllowRoots[event.sessionID],
+           AutoAllowRules.mayAllow(tool: event.toolName, input: event.toolInput, root: root) {
             respond(HookReply(action: .allow))
             AgentReducer.resolved(event.sessionID, in: &sessions)
             return

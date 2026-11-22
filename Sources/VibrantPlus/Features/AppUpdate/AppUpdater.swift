@@ -4,6 +4,7 @@
 import AppKit
 import Foundation
 import Observation
+import SwiftUI
 import VibrantPlusKit
 
 /// Checks GitHub Releases, then an optional local folder (`PROJEKTELAB_RELEASES`). No Sparkle.
@@ -18,6 +19,10 @@ final class AppUpdater {
     private(set) var status: Status = .idle
     private(set) var foundVersion: String?
     private(set) var notesURL: URL?
+    /// The first lines of the release notes.
+    private(set) var notes: String?
+    /// A newer version waits for an answer: the island shows its card.
+    private(set) var offer = false
     @ObservationIgnored private var zipURL: URL?
     @ObservationIgnored private var checkingTask: Task<Void, Never>?
 
@@ -32,6 +37,60 @@ final class AppUpdater {
         status = .checking
         checkingTask = Task { await self.runCheck(automatic: automatic) }
     }
+
+    /// From the island card: the card itself was the question, so no second one.
+    func installFromOffer() {
+        guard case .available = status, let zipURL else { return }
+        status = .downloading
+        Task { await self.runInstall(zip: zipURL) }
+    }
+
+    /// «Später»: the card goes; the next automatic check (a day later) offers it again.
+    /// «Überspringen»: this version is never offered again, a newer one is.
+    func dismissOffer(skip: Bool) {
+        if skip, let foundVersion { Prefs.shared.appUpdateSkipped = foundVersion }
+        offer = false
+        IslandController.shared.releaseStickyIfIdle()
+    }
+
+    /// A newer version came up in an automatic check: say so where the person looks.
+    private func present(_ version: AppVersion) {
+        guard AppUpdatePlan.shouldOffer(version, skipped: Prefs.shared.appUpdateSkipped) else { return }
+        offer = true
+        if Prefs.shared.isOn(.island), IslandController.shared.isRunning {
+            withAnimation(Motion.respecting(Motion.island)) { IslandController.shared.open(sticky: true) }
+            return
+        }
+        // Without the island: the system's own dialog.
+        let alert = NSAlert()
+        alert.messageText = "Vibrant+ \(version.display) ist da"
+        alert.informativeText = (notes.map { $0 + "\n\n" } ?? "") + "Du hast \(current). Vibrant+ wird ersetzt und startet neu."
+        alert.addButton(withTitle: "Jetzt aktualisieren")
+        alert.addButton(withTitle: "Später")
+        alert.addButton(withTitle: "Überspringen")
+        NSApp.activate()
+        switch alert.runModal() {
+        case .alertFirstButtonReturn: offer = false; installFromOffer()
+        case .alertThirdButtonReturn: dismissOffer(skip: true)
+        default: dismissOffer(skip: false)
+        }
+    }
+
+    #if DEBUG
+    /// For snapshots.
+    func loadSample() {
+        foundVersion = "1.1.0"
+        notes = "Licht über der offenen Insel · Codex in der Insel · Rauchglas"
+        notesURL = URL(string: "https://github.com/ArijanVr/VibrantPL/releases")
+        status = .available("1.1.0")
+        offer = true
+    }
+
+    func clearSample() {
+        offer = false
+        status = .idle
+    }
+    #endif
 
     func install() {
         guard case .available = status, let zipURL else { return }
@@ -54,20 +113,18 @@ final class AppUpdater {
             foundVersion = version.display
             zipURL = asset.browserDownloadURL
             notesURL = URL(string: remote.htmlURL)
+            notes = AppUpdatePlan.summary(remote.body)
             status = .available(version.display)
-            if automatic {
-                IslandModel.shared.show(Toast(symbol: "arrow.down.app", text: "Vibrant+ \(version.display) ist bereit"), seconds: 8)
-            }
+            if automatic { present(version) }
             return
         }
         if let local = localLatest(), let now = current, local.version > now {
             foundVersion = local.version.display
             zipURL = local.zip
             notesURL = nil
+            notes = nil
             status = .available(local.version.display)
-            if automatic {
-                IslandModel.shared.show(Toast(symbol: "arrow.down.app", text: "Vibrant+ \(local.version.display) liegt in den Releases"), seconds: 8)
-            }
+            if automatic { present(local.version) }
             return
         }
         if case .failed = status { return }

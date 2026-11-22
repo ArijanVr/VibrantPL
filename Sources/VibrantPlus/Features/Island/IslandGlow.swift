@@ -31,11 +31,15 @@ final class GlowCenter {
 struct IslandGlow: View {
     var shape: IslandShape
     var status: AgentSession.Status?
+    /// The island is open: with «Dauerlauf» on, the light keeps travelling over its edge.
+    var open = false
     private var center = GlowCenter.shared
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    init(shape: IslandShape, status: AgentSession.Status?) {
+    init(shape: IslandShape, status: AgentSession.Status?, open: Bool = false) {
         self.shape = shape
         self.status = status
+        self.open = open
     }
 
     private var holds: Bool { status == .needsPermission || status == .asking }
@@ -44,10 +48,17 @@ struct IslandGlow: View {
 
     var body: some View {
         if Prefs.shared.islandGlow {
-            GlowOutline(shape: shape, style: Prefs.shared.glowStyle, tick: center.tick &+ statusTick, holds: holds)
-                .onChange(of: status) { _, new in
-                    if new == .working || new == .waiting || new == .needsPermission || new == .asking { statusTick += 1 }
+            ZStack {
+                // Reduce motion: no light that never stops, only the events stay (as a still outline).
+                if open && Prefs.shared.glowWhileOpen && !reduceMotion {
+                    GlowLoop(shape: IslandOutline(island: shape), style: Prefs.shared.glowStyle)
+                        .transition(.opacity.animation(Motion.fade))
                 }
+                GlowOutline(shape: IslandOutline(island: shape), style: Prefs.shared.glowStyle, tick: center.tick &+ statusTick, holds: holds)
+            }
+            .onChange(of: status) { _, new in
+                if new == .working || new == .waiting || new == .needsPermission || new == .asking { statusTick += 1 }
+            }
         }
     }
 }
@@ -105,17 +116,55 @@ struct GlowOutline<S: Shape>: View {
     }
 }
 
+/// The light that keeps travelling while the island is open: from the left shoulder around the bottom to
+/// the right one and back, slowing at each end, so it never jumps. Portal breathes instead of travelling.
+/// It only runs while it is on screen (the open island), and Reduce motion leaves it out.
+struct GlowLoop<S: Shape>: View {
+    var shape: S
+    var style: GlowStyle
+
+    var body: some View {
+        let puls = Color(hex: Brand.puls)
+        TimelineView(.animation) { ctx in
+            let t = ctx.date.timeIntervalSinceReferenceDate
+            let period = Motion.glowLoopPeriod
+            if style == .portal {
+                let breath = 0.5 - 0.5 * cos(2 * .pi * t / period)
+                shape.stroke(puls, lineWidth: 1.5)
+                    .shadow(color: puls.opacity(0.8), radius: 6)
+                    .opacity(0.15 + 0.5 * breath)
+            } else {
+                let length: CGFloat = style == .comet ? 0.3 : 0.2
+                // 0 → 1 → 0 with a soft turn at both ends.
+                let phase = t.truncatingRemainder(dividingBy: 2 * period) / period
+                let there = phase < 1 ? phase : 2 - phase
+                let start = CGFloat(0.5 - 0.5 * cos(.pi * there)) * (1 - length)
+                shape.trim(from: start, to: start + length)
+                    .stroke(puls, style: StrokeStyle(lineWidth: style == .comet ? 2.5 : 2, lineCap: .round))
+                    .shadow(color: puls.opacity(0.85), radius: style == .comet ? 8 : 6)
+                    .opacity(0.85)
+            }
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+}
+
 /// A small island in the settings that plays the movement, so it can be judged without waiting for an event.
 struct GlowPreview: View {
     var style: GlowStyle
     @State private var tick = 0
     @State private var holds = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         VStack(spacing: 8) {
             ZStack {
                 IslandShape(radius: 20, shoulder: 8).fill(Color.black)
-                GlowOutline(shape: IslandShape(radius: 20, shoulder: 8), style: style, tick: tick, holds: holds)
+                if Prefs.shared.glowWhileOpen && !reduceMotion {
+                    GlowLoop(shape: IslandOutline(island: IslandShape(radius: 20, shoulder: 8)), style: style)
+                }
+                GlowOutline(shape: IslandOutline(island: IslandShape(radius: 20, shoulder: 8)), style: style, tick: tick, holds: holds)
                 Text("Vibrant+").font(.caption.weight(.semibold)).foregroundStyle(.white.opacity(0.8))
             }
             .frame(width: 220, height: 56)

@@ -29,6 +29,7 @@ private struct TileArrange: ViewModifier {
 
     func body(content: Content) -> some View {
         content
+            .opacity(model.arranging ? 0 : 1)
             .allowsHitTesting(!model.arranging)
             .overlay { if model.arranging { controls.draggable(tile.rawValue) } }
             .dropDestination(for: String.self) { items, _ in
@@ -58,7 +59,7 @@ private struct TileArrange: ViewModifier {
     private var controls: some View {
         RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
             .strokeBorder(IslandColor.accent, style: StrokeStyle(lineWidth: targeted ? 3 : 1.5, dash: [5, 4]))
-            .background(targeted ? IslandColor.accent.opacity(0.3) : IslandColor.background.opacity(0.9), in: RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
+            .background(targeted ? IslandColor.accent.opacity(0.3) : IslandColor.card, in: RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
             .overlay(alignment: .bottom) {
                 HStack(spacing: Space.xs) {
                     IslandIconButton(symbol: "chevron.left", label: "Nach links", size: 24) { step(-1) }
@@ -72,10 +73,13 @@ private struct TileArrange: ViewModifier {
                 }
                 .padding(.bottom, Space.sm)
             }
-            .overlay(alignment: .topLeading) {
-                Label(tile.title, systemImage: "line.3.horizontal")
-                    .font(TypeStyle.islandLabel).foregroundStyle(IslandColor.accentText)
-                    .padding(Space.sm)
+            .overlay(alignment: .top) {
+                VStack(spacing: Space.xs) {
+                    Image(systemName: tile.symbol).font(TypeStyle.islandEmptySymbol).foregroundStyle(IslandColor.accentText)
+                    Text(tile.title).font(TypeStyle.islandTitle).foregroundStyle(IslandColor.primaryText).lineLimit(1)
+                    Text("Ziehen").font(TypeStyle.islandCaption).foregroundStyle(IslandColor.secondaryText)
+                }
+                .padding(Space.md)
             }
     }
 }

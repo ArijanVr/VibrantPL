@@ -325,6 +325,8 @@ struct GlowSettings: View {
             }
             .disabled(!prefs.islandGlow)
             GlowPreview(style: prefs.glowStyle)
+            Toggle("Läuft dauernd, solange die Insel offen ist", isOn: $prefs.glowWhileOpen)
+                .disabled(!prefs.islandGlow)
             Toggle("Auch beim Öffnen mit der Maus auf dem Notch", isOn: $prefs.glowOnHover)
                 .disabled(!prefs.islandGlow)
             Toggle("Auch bei Kopieren, Einfügen, Ausschneiden und Zurücknehmen (⌘C, ⌘V, ⌘X, ⌘Z)", isOn: $prefs.shortcutEcho)
@@ -607,7 +609,7 @@ struct AssistantSettings: View {
             Text("Vibrant+ nutzt das Sprachmodell von Apple Intelligence direkt auf deinem Mac: ohne Konto, ohne Kosten, ohne Internet. Es kann Aufgaben und Erinnerungen anlegen, Timer und Fokus starten, Apps öffnen und deine Termine von heute nennen.")
         }
         Section("Verwenden") {
-            LabeledContent("Fragen per Stimme", value: "Mikrofon auf der Seite «Fragen» oder ⌃⇧ halten")
+            LabeledContent("Fragen per Stimme", value: "Mikrofon auf der Seite «Assistent» oder ⌃⇧ halten")
             LabeledContent("Fragen per Text", value: "Sprechblase in der Insel")
             Toggle("Antworten auf gesprochene Fragen vorlesen", isOn: $prefs.assistantSpeaks)
             Toggle("Gesprächsmodus: nach der Antwort wieder zuhören", isOn: $prefs.conversationMode)
@@ -1118,7 +1120,7 @@ struct AppearanceSettings: View {
         } header: {
             Text("Insel, Heute und Rand-Regler")
         } footer: {
-            Text("«Notch-Schwarz» verschmilzt mit dem Notch. «Liquid Glass» zeigt die Insel im durchscheinenden Glas von macOS 26. Geschlossen bleibt die Insel immer schwarz wie der Notch. Beide letzten Stile folgen Hell/Dunkel des Mac; bei «Transparenz reduzieren» (Bedienungshilfen) wird das Glas zu einer festen Fläche.")
+            Text("«Notch-Schwarz» verschmilzt mit dem Notch. «Liquid Glass» bleibt neben dem Notch schwarz und wird darunter zu Rauchglas mit Glaskanten an jeder Kachel, in Hell und Dunkel gleich gut lesbar. Geschlossen bleibt die Insel immer schwarz. Bei «Transparenz reduzieren» oder «Kontrast erhöhen» wird das Glas zu einer festen Fläche.")
         }
         Section("Akzentfarbe") {
             Picker("Akzent", selection: $theme.themeID) {

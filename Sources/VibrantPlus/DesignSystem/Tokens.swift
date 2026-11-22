@@ -19,11 +19,15 @@ enum Brand {
     /// Puls für Text auf hellem Grund: Puls selbst kommt dort nur auf 4,3:1, das reicht für
     /// kleine Schrift nicht (WCAG AA verlangt 4,5:1). Diese Spur ist gleich dunkler, nicht bunter.
     static let pulsInk: UInt32 = 0xC9326F
+    /// Puls für Text auf Graphit: Puls selbst kommt dort nur auf 4,1:1.
+    static let pulsLight: UInt32 = 0xEC6FA2
+    /// Puls für Text auf Glas: Rauchglas über einem weissen Fenster ist das Hellste, worauf Text steht.
+    static let pulsGlass: UInt32 = 0xFFB8D5
     // Pastell (Himmel, Pfirsich, Rosé) gehört nur ins Icon und in Werbebilder, nie in eine Oberfläche.
 }
 
 /// The island's look. The island is always Black (Brandguide 09: «Insel immer Black, in Light und Dark»),
-/// closed or open. «Liquid Glass» is the macOS 26 glass material, with Brand colors for text and accent.
+/// closed or open. «Liquid Glass» is smoked glass: solid black beside the notch, glass below it, in light and dark.
 enum IslandStyle: String, CaseIterable, Identifiable, Codable {
     case notch, glass
     var id: String { rawValue }
@@ -37,15 +41,21 @@ enum IslandStyle: String, CaseIterable, Identifiable, Codable {
 
 /// One set of island colors.
 struct IslandPalette: Equatable {
+    /// The solid ground: the island in Notch-Schwarz, and what Liquid Glass falls back to.
     var background: Color
     var card: Color
+    /// Controls that sit on a card: pills, round buttons, the selected page.
     var cardHover: Color
+    /// Laid over a card under the pointer. Not `cardHover`: the controls on the card would vanish in it.
+    var hoverVeil: Color
     var cardWarm: Color
     var primaryText: Color
     var secondaryText: Color
     var tertiaryText: Color
     var accent: Color
-    /// Der Akzent als Text: auf hellem Grund dunkler, damit kleine Schrift lesbar bleibt.
+    /// A fill that carries text: a shade deeper than the accent, so small white type passes 4.5:1.
+    var accentFill: Color
+    /// Der Akzent als Text: heller als Puls, damit kleine Schrift auf Karten lesbar bleibt.
     var accentText: Color
     var onAccent: Color
     var warm: Color
@@ -56,99 +66,66 @@ struct IslandPalette: Equatable {
     var field: Color
     var danger: Color
     var dot: Color
+    /// The edge of a card where it catches the light, and where it turns away from it.
+    var rimLight: Color
+    var rimShade: Color
     var scheme: ColorScheme
 
     /// The brand island: Black, in light and dark mode. Graphite layers, Off-White text, Puls for events and focus.
     static let notch = IslandPalette(
         background: .black,
         card: Color(hex: Brand.graphite).opacity(0.55),
-        cardHover: Color(hex: Brand.graphite).opacity(0.85),
+        cardHover: Color(hex: Brand.graphite),
+        hoverVeil: Color(hex: Brand.offWhite).opacity(0.04),
         cardWarm: Color(hex: Brand.graphite).opacity(0.55),
         primaryText: Color(hex: Brand.offWhite),
         secondaryText: Color(hex: Brand.lightGrey),
-        tertiaryText: Color(hex: Brand.lightGrey).opacity(0.7),
+        tertiaryText: Color(hex: Brand.lightGrey).opacity(0.78),
         accent: Color(hex: Brand.puls),
-        accentText: Color(hex: Brand.puls),
+        accentFill: Color(hex: Brand.pulsInk),
+        accentText: Color(hex: Brand.pulsLight),
         onAccent: Color(hex: Brand.offWhite),
-        warm: Color(hex: Brand.puls),
-        warmFill: Color(hex: Brand.puls),
+        warm: Color(hex: Brand.pulsLight),
+        // «Immer erlauben» is a bigger yes than «Erlauben»: it must not look like the default.
+        warmFill: Color(hex: Brand.puls).opacity(0.22),
         onWarm: Color(hex: Brand.offWhite),
         separator: Color(hex: Brand.offWhite).opacity(0.1),
         field: Color.black.opacity(0.35),
         danger: Color(hex: Brand.puls),
         dot: Color(hex: Brand.puls),
+        rimLight: Color(hex: Brand.offWhite).opacity(0.16),
+        rimShade: Color(hex: Brand.offWhite).opacity(0.03),
         scheme: .dark)
 
-    /// Brand, light: Off-White ground, Grau for cards. Pastel is never a surface.
-    static let light = IslandPalette(
-        background: Color(hex: Brand.offWhite),
-        card: Color(hex: Brand.grouped),
-        cardHover: Color(hex: Brand.hairline),
-        cardWarm: Color(hex: Brand.grouped),
-        primaryText: Color(hex: Brand.black),
-        secondaryText: Color(hex: Brand.grey),
-        tertiaryText: Color(hex: Brand.grey).opacity(0.8),
-        accent: Color(hex: Brand.puls),
-        accentText: Color(hex: Brand.pulsInk),
-        onAccent: Color(hex: Brand.offWhite),
-        warm: Color(hex: Brand.pulsInk),
-        warmFill: Color(hex: Brand.puls),
-        onWarm: Color(hex: Brand.offWhite),
-        separator: Color(hex: Brand.black).opacity(0.1),
-        field: Color(hex: Brand.offWhite).opacity(0.75),
-        danger: Color(hex: Brand.puls),
-        dot: Color(hex: Brand.puls),
-        scheme: .light)
+    /// Liquid Glass. The island's body is the one glass layer, smoked so text holds over any window;
+    /// cards are clear panes lying in it (glass is never stacked on glass).
+    static let glass: IslandPalette = {
+        var p = IslandPalette.notch
+        p.card = Color.white.opacity(0.08)
+        p.cardWarm = Color.white.opacity(0.08)
+        p.cardHover = Color.white.opacity(0.16)
+        p.hoverVeil = Color.white.opacity(0.05)
+        p.secondaryText = Color.white.opacity(0.9)
+        p.tertiaryText = Color.white.opacity(0.8)
+        p.accentText = Color(hex: Brand.pulsGlass)
+        p.warm = Color(hex: Brand.pulsGlass)
+        p.separator = Color.white.opacity(0.16)
+        p.field = Color.black.opacity(0.28)
+        p.rimLight = Color.white.opacity(0.42)
+        p.rimShade = Color.white.opacity(0.05)
+        return p
+    }()
 
-    /// Brand, dark: Black ground (never #000 in text), Graphite layers, Off-White text.
-    static let dark = IslandPalette(
-        background: Color(hex: Brand.black),
-        card: Color(hex: Brand.graphite),
-        cardHover: Color(hex: 0x37393A),
-        cardWarm: Color(hex: Brand.graphite),
-        primaryText: Color(hex: Brand.offWhite),
-        secondaryText: Color(hex: Brand.lightGrey),
-        tertiaryText: Color(hex: Brand.lightGrey).opacity(0.7),
-        accent: Color(hex: Brand.puls),
-        accentText: Color(hex: Brand.puls),
-        onAccent: Color(hex: Brand.offWhite),
-        warm: Color(hex: Brand.puls),
-        warmFill: Color(hex: Brand.puls),
-        onWarm: Color(hex: Brand.offWhite),
-        separator: Color(hex: Brand.offWhite).opacity(0.1),
-        field: Color(hex: Brand.black).opacity(0.45),
-        danger: Color(hex: Brand.puls),
-        dot: Color(hex: Brand.puls),
-        scheme: .dark)
-}
-
-extension IslandPalette {
     /// System Settings › Accessibility › Display › Increase contrast: secondary text, hints and
     /// lines move close to the primary text color, so nothing relies on a faint grey.
     func increasedContrast() -> IslandPalette {
         var p = self
-        p.secondaryText = primaryText.opacity(0.9)
-        p.tertiaryText = primaryText.opacity(0.78)
+        p.secondaryText = primaryText.opacity(0.94)
+        p.tertiaryText = primaryText.opacity(0.86)
         p.separator = primaryText.opacity(0.35)
-        return p
-    }
-
-    /// Liquid Glass: the surfaces are Apple's glass material (drawn by `islandSurface`), so the
-    /// palette only carries text, accent and a faint tint for hover. Text follows light/dark.
-    static func glass(dark: Bool) -> IslandPalette {
-        var p = dark ? IslandPalette.dark : IslandPalette.light
-        p.background = .clear
-        p.card = .clear
-        p.cardWarm = .clear
-        p.cardHover = (dark ? Color.white : Color.black).opacity(0.14)
-        p.field = (dark ? Color.black : Color.white).opacity(dark ? 0.28 : 0.45)
-        p.accent = Color.accentColor
-        p.accentText = Color.accentColor
-        p.onAccent = .white
-        p.warm = Color(hex: Brand.puls)
-        p.warmFill = (dark ? Color.white : Color.black).opacity(0.14)
-        p.onWarm = p.primaryText
-        p.secondaryText = dark ? Color.white.opacity(0.75) : Color.black.opacity(0.65)
+        // Plain lines instead of light play.
+        p.rimLight = p.separator
+        p.rimShade = p.separator
         return p
     }
 }
@@ -158,19 +135,25 @@ extension IslandPalette {
 final class IslandTheme {
     static let shared = IslandTheme()
     var style: IslandStyle {
-        didSet { UserDefaults.standard.set(style.rawValue, forKey: "island.style") }
+        didSet {
+            // Snapshots switch the style; they must not write it into the person's settings.
+            guard !Paths.isOverridden else { return }
+            UserDefaults.standard.set(style.rawValue, forKey: "island.style")
+        }
     }
-    private(set) var macIsDark = IslandTheme.readMacDark()
     private(set) var increaseContrast = NSWorkspace.shared.accessibilityDisplayShouldIncreaseContrast
+    private(set) var reduceTransparency = NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency
+
+    /// Glass is really drawn: not with Reduce transparency or Increase contrast, where the ground is solid.
+    var drawsGlass: Bool { style == .glass && !reduceTransparency && !increaseContrast }
 
     var palette: IslandPalette {
-        var base: IslandPalette = switch style {
-        case .notch: .notch
-        case .glass: .glass(dark: macIsDark)
-        }
-        if let accent = ThemeStore.shared.chosen, let shades = accent.shades {
+        var base: IslandPalette = drawsGlass ? .glass : .notch
+        // Puls picked by hand keeps the readable Puls text tones above.
+        if let accent = ThemeStore.shared.chosen, let shades = accent.shades, shades.base != Brand.puls {
             base.accent = Color(hex: shades.base)
-            base.accentText = Color(hex: base.scheme == .dark ? shades.light : shades.deep)
+            base.accentFill = base.accent
+            base.accentText = Color(hex: shades.light)
             base.onAccent = accent.onAccent
             base.dot = base.accent
         }
@@ -180,23 +163,18 @@ final class IslandTheme {
     private init() {
         style = IslandStyle(rawValue: ProcessInfo.processInfo.environment["APP_ISLAND_STYLE"]
             ?? UserDefaults.standard.string(forKey: "island.style") ?? "") ?? .notch
-        DistributedNotificationCenter.default().addObserver(forName: Notification.Name("AppleInterfaceThemeChangedNotification"),
-                                                            object: nil, queue: .main) { [weak self] _ in
-            MainActor.assumeIsolated { self?.macIsDark = IslandTheme.readMacDark() }
-        }
         NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.accessibilityDisplayOptionsDidChangeNotification,
                                                           object: nil, queue: .main) { [weak self] _ in
-            MainActor.assumeIsolated { self?.increaseContrast = NSWorkspace.shared.accessibilityDisplayShouldIncreaseContrast }
+            MainActor.assumeIsolated {
+                self?.increaseContrast = NSWorkspace.shared.accessibilityDisplayShouldIncreaseContrast
+                self?.reduceTransparency = NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency
+            }
         }
     }
 
     /// For snapshots.
-    func setMacDark(_ dark: Bool) { macIsDark = dark }
     func setIncreaseContrast(_ on: Bool) { increaseContrast = on }
-
-    private static func readMacDark() -> Bool {
-        UserDefaults.standard.string(forKey: "AppleInterfaceStyle") == "Dark"
-    }
+    func setReduceTransparency(_ on: Bool) { reduceTransparency = on }
 }
 
 /// Colors for the island, the dial, Today and the assistant. They follow IslandTheme.
@@ -205,6 +183,10 @@ enum IslandColor {
     static var background: Color { p.background }
     static var card: Color { p.card }
     static var cardHover: Color { p.cardHover }
+    static var hoverVeil: Color { p.hoverVeil }
+    static var accentFill: Color { p.accentFill }
+    static var rimLight: Color { p.rimLight }
+    static var rimShade: Color { p.rimShade }
     /// The second card tone (Grau in the brand, no pastel).
     static var cardWarm: Color { p.cardWarm }
     static var primaryText: Color { p.primaryText }
@@ -225,26 +207,28 @@ enum IslandColor {
     /// The orange point: titles may end with it. Never a surface.
     static var dot: Color { p.dot }
     static var scheme: ColorScheme { p.scheme }
-    static var isGlass: Bool { IslandTheme.shared.style == .glass }
 }
 
 extension View {
-    /// A card surface for the island: the flat palette color, or a soft tint in Liquid Glass.
+    /// A card in the island: a pane with light on its upper edge. In Liquid Glass the pane also carries
+    /// a soft sheen; the glass itself is the island's body, so there is never glass on glass.
     func islandSurface(_ shape: some InsettableShape = RoundedRectangle(cornerRadius: Radius.card, style: .continuous),
                        tone: IslandSurfaceTone = .card) -> some View {
-        // Cards sit on the island body. In Liquid Glass the body is the glass, so cards are only a
-        // soft tint on it (glass is never stacked on glass).
-        let fill: Color = IslandColor.isGlass
-            ? (IslandColor.scheme == .dark ? Color.white : Color.black).opacity(tone == .warm ? 0.14 : 0.09)
-            : (tone == .warm ? IslandColor.cardWarm : IslandColor.card)
-        // A hairline that catches light at the top edge lifts the card off the ground
-        // (not in Liquid Glass, and not with Increase contrast, where lines have to be plain).
-        let rim: Color = IslandColor.isGlass || IslandTheme.shared.increaseContrast ? .clear
-            : (IslandColor.scheme == .dark ? Color.white : Color.black)
-        return self.background(fill, in: shape)
+        let glass = IslandTheme.shared.drawsGlass
+        return self
+            .background {
+                shape.fill(tone == .warm ? IslandColor.cardWarm : IslandColor.card)
+                if glass {
+                    shape.fill(LinearGradient(colors: [.white.opacity(Glass.sheen), .clear], startPoint: .top, endPoint: .center))
+                }
+            }
             .overlay {
-                shape.strokeBorder(LinearGradient(colors: [rim.opacity(Shadow.rimTop), rim.opacity(Shadow.rimBottom)],
-                                                  startPoint: .top, endPoint: .bottom), lineWidth: 1)
+                // Light comes from the top left and leaves a faint echo in the far corner.
+                shape.strokeBorder(LinearGradient(stops: [.init(color: IslandColor.rimLight, location: 0),
+                                                          .init(color: IslandColor.rimShade, location: 0.45),
+                                                          .init(color: IslandColor.rimShade, location: 0.75),
+                                                          .init(color: IslandColor.rimLight.opacity(Glass.rimEcho), location: 1)],
+                                                  startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
                     .allowsHitTesting(false)
             }
     }
@@ -253,16 +237,43 @@ extension View {
 enum IslandSurfaceTone { case card, warm }
 
 extension View {
-    /// The island's own body. Closed, it is always black so it melts into the notch; open, it is
-    /// the palette ground, or Liquid Glass in the glass style.
+    /// The island's own body. Closed, it is always black so it melts into the notch. Open in Liquid
+    /// Glass it stays black for `band` points (the camera housing is black) and turns to smoked glass below.
     @ViewBuilder
-    func islandBackground(_ shape: some Shape, open: Bool) -> some View {
+    func islandBackground(_ shape: some Shape, open: Bool, band: CGFloat = 0) -> some View {
         if !open {
             self.background(Color.black, in: shape)
-        } else if IslandColor.isGlass && !NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency {
-            self.glassEffect(.regular, in: shape)
+        } else if IslandTheme.shared.drawsGlass {
+            self.background { GlassSmoke(band: band).clipShape(shape).allowsHitTesting(false) }
+                .glassEffect(.regular, in: shape)
         } else {
-            self.background(IslandColor.isGlass ? (IslandColor.scheme == .dark ? Color(hex: Brand.black) : Color(hex: Brand.offWhite)) : IslandColor.background, in: shape)
+            self.background(IslandColor.background, in: shape)
+        }
+    }
+}
+
+/// Values of the Liquid Glass island.
+enum Glass {
+    /// How much black lies in the glass: enough that white 10 pt type holds over a white window.
+    static let smoke = 0.65
+    /// The way from the black band to the smoke.
+    static let melt: CGFloat = 24
+    static let sheen = 0.05
+    static let rimEcho = 0.45
+}
+
+/// Black as high as the notch, then a short melt into smoke.
+private struct GlassSmoke: View {
+    var band: CGFloat
+
+    var body: some View {
+        VStack(spacing: 0) {
+            if band > 0 {
+                Color.black.frame(height: band)
+                LinearGradient(colors: [.black, .black.opacity(Glass.smoke)], startPoint: .top, endPoint: .bottom)
+                    .frame(height: Glass.melt)
+            }
+            Color.black.opacity(Glass.smoke)
         }
     }
 }
@@ -277,23 +288,31 @@ enum Radius {
 enum Motion {
     /// Opening and closing the island.
     /// A soft landing with a hint of overshoot, like the island on the iPhone.
-    static let island = Animation.spring(response: 0.42, dampingFraction: 0.82)
+    static let island = Animation.spring(response: 0.36, dampingFraction: 0.86)
     /// Closing is a little quicker than opening: it should get out of the way.
-    static let islandClose = Animation.spring(response: 0.18, dampingFraction: 1.0)
+    static let islandClose = Animation.spring(response: 0.22, dampingFraction: 1.0)
+    /// Another page: nothing was thrown, so nothing bounces.
+    static let page = Animation.spring(response: 0.28, dampingFraction: 1.0)
+    /// How far a new page comes from the side it lives on.
+    static let pageTravel: CGFloat = 16
     /// Small state changes inside cards.
     static let quick = Animation.easeOut(duration: 0.14)
     static let fade = Animation.easeInOut(duration: 0.24)
     /// The open island's content: it fades in just after the shape starts to grow,
     /// and out quickly so the shape can close around nothing.
-    static let contentIn = Animation.easeOut(duration: 0.26).delay(0.08)
+    static let contentIn = Animation.easeOut(duration: 0.2).delay(0.04)
     static let contentOut = Animation.easeIn(duration: 0.08)
-    /// «Claude arbeitet»: a slow breath, the only motion that repeats.
+    /// One way of the light over the open island's edge (left shoulder to right, or back).
+    static let glowLoopPeriod: TimeInterval = 2.4
+    /// «Claude arbeitet»: a slow breath. With the light over the open island, the only motions that repeat.
     static let pulse = Animation.easeInOut(duration: 0.9).repeatForever()
     /// Buttons give way a little under the pointer.
     static let press = Animation.easeOut(duration: 0.1)
     static let pressScale: CGFloat = 0.97
     /// The open island's content grows out of the notch with the shape: it starts a little smaller.
-    static let contentScale: CGFloat = 0.94
+    static let contentScale: CGFloat = 0.97
+    /// The whole island starts this much smaller when it opens.
+    static let growScale: CGFloat = 0.94
     /// The equalizer's frame interval.
     static let equalizerInterval: TimeInterval = 0.18
     /// The voice level beside the notch follows the microphone: a little quicker.
@@ -321,27 +340,26 @@ enum Shadow {
     static let card = Color.black.opacity(0.32)
     static let cardRadius: CGFloat = 20
     static let cardY: CGFloat = 8
-    /// The light hairline around island cards: stronger at the top edge.
-    static let rimTop = 0.1
-    static let rimBottom = 0.02
 }
 
 /// Layout metrics for the island and the edge dial.
 enum Metrics {
     /// The widest the open island gets: the pages (four tiles side by side).
-    static let islandWidth: CGFloat = 648
+    static let islandWidth: CGFloat = 656
     /// A single card (a request from Claude, a reminder, the drop zones) needs less.
     static let islandCardWidth: CGFloat = 520
     static let islandHeight: CGFloat = 172
     /// The island panel's fixed height: the tallest the open island gets.
     static let islandMaxHeight: CGFloat = 520
-    /// Around the open island's content. Card radius + padding = island radius, so corners run parallel.
-    static let islandPadding: CGFloat = Space.sm
+    /// Around the open island's content. Card radius (12) + padding (12) = island radius (24): the corners run parallel.
+    static let islandPadding: CGFloat = Space.md
     /// What a page has to lay out its cards.
     static let islandContentWidth: CGFloat = islandWidth - islandPadding * 2
     /// The band beside the notch holds the page tabs; it is never lower than this.
     static let islandBandMinHeight: CGFloat = 32
     static let tileWidth: CGFloat = 152
+    /// Every card header is this high, with or without a button in it: the first lines of all cards align.
+    static let cardHeaderHeight: CGFloat = 20
     static let tileHeight: CGFloat = 128
     static let wideTileWidth: CGFloat = 312
     /// The Today cards hold lists and a note: a little taller than a tile.
@@ -369,6 +387,9 @@ enum TypeStyle {
     static let islandTimer = Font.system(size: 22, weight: .semibold, design: .rounded).monospacedDigit()
     /// Commands, paths and tool input.
     static let islandCode = Font.system(size: 11, design: .monospaced)
+    static let islandTab = Font.system(size: 12, weight: .semibold)
+    static let islandTabSmall = Font.system(size: 10, weight: .semibold)
+    static let islandEmptySymbol = Font.system(size: 16, weight: .medium)
 }
 
 extension EnvironmentValues {
@@ -393,7 +414,7 @@ struct IslandCard<Content: View>: View {
             .frame(width: wide ? max(width, Metrics.wideTileWidth) : width, height: height, alignment: .topLeading)
             // Hover sits on top of the card fill: a background added after `islandSurface`
             // would land behind it and stay invisible on opaque cards.
-            .background(hovering ? IslandColor.cardHover : Color.clear, in: shape)
+            .background(hovering ? IslandColor.hoverVeil : Color.clear, in: shape)
             .background {
                 if let glow {
                     RadialGradient(colors: [glow.opacity(0.35), .clear], center: .topLeading, startRadius: 0, endRadius: 260)
@@ -455,6 +476,28 @@ struct CardHeader: View {
             .foregroundStyle(IslandColor.secondaryText)
             .labelStyle(.titleAndIcon)
             .lineLimit(1)
+            .frame(height: Metrics.cardHeaderHeight)
+    }
+}
+
+/// What an empty card says: what belongs here, centered in the room below the header.
+struct IslandEmpty: View {
+    var symbol: String
+    var text: String
+
+    var body: some View {
+        VStack(spacing: Space.xs) {
+            Image(systemName: symbol)
+                .font(TypeStyle.islandEmptySymbol)
+                .foregroundStyle(IslandColor.tertiaryText)
+                .accessibilityHidden(true)
+            Text(text)
+                .font(TypeStyle.islandCaption)
+                .foregroundStyle(IslandColor.secondaryText)
+                .multilineTextAlignment(.center)
+                .lineLimit(3)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -473,8 +516,8 @@ struct IslandIconButton: View {
                 .font(.system(size: size * 0.42, weight: .semibold))
                 .frame(width: size, height: size)
                 .foregroundStyle(prominent ? IslandColor.onAccent : IslandColor.primaryText)
-                .background(prominent ? IslandColor.accent : (hovering ? IslandColor.cardHover : IslandColor.card),
-                            in: Circle())
+                .background(hovering ? IslandColor.hoverVeil : Color.clear, in: Circle())
+                .background(prominent ? IslandColor.accentFill : IslandColor.cardHover, in: Circle())
         }
         .buttonStyle(IslandPressStyle())
         .help(label)
@@ -504,6 +547,8 @@ struct IslandPillButton: View {
     enum Kind { case primary, secondary, warm, danger }
     var title: String
     var kind: Kind = .secondary
+    /// Fills the width it is given (a grid of equal buttons).
+    var expands = false
     var action: () -> Void
     @State private var hovering = false
 
@@ -511,10 +556,14 @@ struct IslandPillButton: View {
         Button(action: action) {
             Text(title)
                 .font(TypeStyle.islandCaption.weight(.semibold))
-                .padding(.horizontal, Space.md)
+                .lineLimit(1)
+                .padding(.horizontal, expands ? Space.xs : Space.md)
                 .padding(.vertical, Space.xs + 2)
+                .frame(maxWidth: expands ? .infinity : nil)
                 .foregroundStyle(foreground)
-                .background(background.opacity(hovering ? 0.85 : 1), in: Capsule())
+                // Hover lightens: it never lowers the contrast of the label.
+                .background(hovering ? IslandColor.hoverVeil : Color.clear, in: Capsule())
+                .background(background, in: Capsule())
         }
         .buttonStyle(IslandPressStyle())
         .onHover { hovering = $0 }
@@ -530,7 +579,7 @@ struct IslandPillButton: View {
 
     private var background: Color {
         switch kind {
-        case .primary: IslandColor.accent
+        case .primary: IslandColor.accentFill
         case .warm: IslandColor.warmFill
         case .secondary: IslandColor.cardHover
         case .danger: IslandColor.danger.opacity(0.35)
@@ -597,21 +646,46 @@ nonisolated struct IslandShape: Shape {
     }
 
     func path(in rect: CGRect) -> Path {
-        let s = min(shoulder, rect.width / 4, rect.height / 2)
-        let left = rect.minX + s, right = rect.maxX - s
-        let r = min(radius, (right - left) / 2, rect.height - s)
-        var p = Path()
-        p.move(to: CGPoint(x: rect.minX, y: rect.minY))
-        p.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
-        // Right shoulder: curves inward from the top edge down into the body.
-        p.addQuadCurve(to: CGPoint(x: right, y: rect.minY + s), control: CGPoint(x: right, y: rect.minY))
-        p.addLine(to: CGPoint(x: right, y: rect.maxY - r))
-        p.addQuadCurve(to: CGPoint(x: right - r, y: rect.maxY), control: CGPoint(x: right, y: rect.maxY))
-        p.addLine(to: CGPoint(x: left + r, y: rect.maxY))
-        p.addQuadCurve(to: CGPoint(x: left, y: rect.maxY - r), control: CGPoint(x: left, y: rect.maxY))
-        p.addLine(to: CGPoint(x: left, y: rect.minY + s))
-        p.addQuadCurve(to: CGPoint(x: rect.minX, y: rect.minY), control: CGPoint(x: left, y: rect.minY))
+        var p = outline(in: rect)
         p.closeSubpath()
         return p
     }
+
+    /// The visible edge only: from the left shoulder around the bottom to the right one. The top lies
+    /// on the display's edge, where a stroke or a light would not be seen.
+    func outline(in rect: CGRect) -> Path {
+        let s = max(0, min(shoulder, rect.width / 4, rect.height / 2))
+        let left = rect.minX + s, right = rect.maxX - s, bottom = rect.maxY
+        // A continuous corner, like the cards': it leaves the straight edge a little earlier than a circle would.
+        let reach = max(0, min(radius * Self.cornerReach, (right - left) / 2, rect.height - s))
+        let pull = reach * Self.cornerPull
+        var p = Path()
+        p.move(to: CGPoint(x: rect.minX, y: rect.minY))
+        // Left shoulder: curves inward from the top edge down into the body.
+        p.addQuadCurve(to: CGPoint(x: left, y: rect.minY + s), control: CGPoint(x: left, y: rect.minY))
+        p.addLine(to: CGPoint(x: left, y: bottom - reach))
+        p.addCurve(to: CGPoint(x: left + reach, y: bottom),
+                   control1: CGPoint(x: left, y: bottom - pull), control2: CGPoint(x: left + pull, y: bottom))
+        p.addLine(to: CGPoint(x: right - reach, y: bottom))
+        p.addCurve(to: CGPoint(x: right, y: bottom - reach),
+                   control1: CGPoint(x: right - pull, y: bottom), control2: CGPoint(x: right, y: bottom - pull))
+        p.addLine(to: CGPoint(x: right, y: rect.minY + s))
+        p.addQuadCurve(to: CGPoint(x: rect.maxX, y: rect.minY), control: CGPoint(x: right, y: rect.minY))
+        return p
+    }
+
+    private static let cornerReach: CGFloat = 1.28
+    private static let cornerPull: CGFloat = 0.3
+}
+
+/// The island's edge without its top, for strokes and light.
+nonisolated struct IslandOutline: Shape {
+    var island: IslandShape
+
+    var animatableData: IslandShape.AnimatableData {
+        get { island.animatableData }
+        set { island.animatableData = newValue }
+    }
+
+    func path(in rect: CGRect) -> Path { island.outline(in: rect) }
 }

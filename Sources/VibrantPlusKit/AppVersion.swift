@@ -41,6 +41,26 @@ public enum AppUpdatePlan {
         return ok && (url.scheme == "https")
     }
 
+    /// A found version is offered unless the person skipped it or a newer one.
+    public static func shouldOffer(_ found: AppVersion, skipped: String?) -> Bool {
+        guard let skipped, let last = AppVersion.parse(skipped) else { return true }
+        return found > last
+    }
+
+    /// The first lines of the release notes as plain text, for a short card. Markdown marks are dropped.
+    public static func summary(_ notes: String?, limit: Int = 140) -> String? {
+        guard let notes else { return nil }
+        let lines = notes.split(whereSeparator: \.isNewline).map { line -> String in
+            var text = line.trimmingCharacters(in: .whitespaces)
+            while let first = text.first, "#*->_`".contains(first) { text.removeFirst() }
+            return text.replacingOccurrences(of: "**", with: "").replacingOccurrences(of: "`", with: "")
+                .trimmingCharacters(in: .whitespaces)
+        }.filter { !$0.isEmpty }
+        guard !lines.isEmpty else { return nil }
+        let joined = lines.prefix(3).joined(separator: " · ")
+        return joined.count > limit ? String(joined.prefix(limit - 1)) + "…" : joined
+    }
+
     /// Newest `Vibrant+-x.y.z.zip` from release folder names like `2026-11-17_v1.0.3`.
     public static func newestICloud(folderNames: [String]) -> AppVersion? {
         folderNames.compactMap { name -> AppVersion? in
@@ -54,7 +74,9 @@ public struct GitHubRelease: Decodable, Sendable {
     public var tagName: String
     public var htmlURL: String
     public var assets: [Asset]
-    public enum CodingKeys: String, CodingKey { case tagName = "tag_name", htmlURL = "html_url", assets }
+    /// The release notes (Markdown), when the release has any.
+    public var body: String?
+    public enum CodingKeys: String, CodingKey { case tagName = "tag_name", htmlURL = "html_url", assets, body }
     public struct Asset: Decodable, Sendable {
         public var name: String
         public var browserDownloadURL: URL
