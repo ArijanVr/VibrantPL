@@ -324,6 +324,9 @@ struct GlowSettings: View {
                 ForEach(GlowStyle.allCases) { Text($0.title).tag($0) }
             }
             .disabled(!prefs.islandGlow)
+            GlowPreview(style: prefs.glowStyle)
+            Toggle("Auch beim Öffnen mit der Maus auf dem Notch", isOn: $prefs.glowOnHover)
+                .disabled(!prefs.islandGlow)
             Toggle("Auch bei Kopieren, Einfügen, Ausschneiden und Zurücknehmen (⌘C, ⌘V, ⌘X, ⌘Z)", isOn: $prefs.shortcutEcho)
                 .disabled(!prefs.islandGlow)
                 .onChange(of: prefs.shortcutEcho) { KeyMonitor.shared.update() }

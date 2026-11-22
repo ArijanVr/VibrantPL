@@ -551,6 +551,7 @@ final class IslandController {
                     self.hoverTask = nil
                     guard !self.model.isOpen, self.isOnTrigger(NSEvent.mouseLocation), !self.menuIsOpen else { return }
                     withAnimation(Motion.respecting(Motion.island)) { self.open() }
+                    if Prefs.shared.glowOnHover { GlowCenter.shared.fire() }
                 }
             } else if !model.sticky && !model.dragging {
                 if openRect.contains(p) { closeTask?.cancel(); return }

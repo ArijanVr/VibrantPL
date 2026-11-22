@@ -340,6 +340,8 @@ final class Prefs {
     var screenshotsStay: Bool { didSet { d.set(screenshotsStay, forKey: "screenshots.stay") } }
     /// Files that arrive by AirDrop show on the island.
     var airDropArrival: Bool { didSet { d.set(airDropArrival, forKey: "airdrop.arrival") } }
+    /// The outline also lights up when the island opens because the mouse rests on the notch.
+    var glowOnHover: Bool { didSet { d.set(glowOnHover, forKey: "island.glowOnHover") } }
     var chargeGlow: Bool { didSet { d.set(chargeGlow, forKey: "island.chargeGlow") } }
     /// Pulsi reads notices with the system voice (Siri / Spoken Content). Off: toasts only.
     var mascotSpeaks: Bool { didSet { d.set(mascotSpeaks, forKey: "island.mascotSpeaks") } }
@@ -480,6 +482,7 @@ final class Prefs {
         shortcutEcho = d.object(forKey: "island.shortcutEcho") as? Bool ?? false
         screenshotsStay = d.bool(forKey: "screenshots.stay")
         airDropArrival = d.object(forKey: "airdrop.arrival") as? Bool ?? true
+        glowOnHover = d.bool(forKey: "island.glowOnHover")
         chargeGlow = d.object(forKey: "island.chargeGlow") as? Bool ?? true
         mascotSpeaks = d.bool(forKey: "island.mascotSpeaks")
         mascotPlaySounds = d.object(forKey: "island.mascotSounds") as? Bool ?? true
