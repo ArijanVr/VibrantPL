@@ -89,3 +89,12 @@ Die Insel öffnet erst, wenn der Zeiger ganz oben am Bildschirmrand im Notch lie
 - Das ARJO-LAB-Logo ist nie das App-Icon. Es erscheint nur in der Absenderzeile.
 - Wortmarke: `Wordmark` zeichnet «Vibrant» in Geist Medium aus `Design/Wortmarke/Vibrant-Plus_Wortmarke_*_v1.svg` (Pfade unverändert) und das «+» in Puls, runde Enden, um -8° gekippt, oben bündig mit der Versalhöhe (Strich 92 / 1000 em). Das «+» ist eine eigene Form und nimmt den Akzent.
 - Absenderzeile: «Ein Produkt von ARJO LAB» in Über und Einstellungen.
+
+## Einstellungen
+
+- Seitenleiste nach Aufgaben: Allgemein, Insel, KI und Stimme, Dateien und Text, Mac, Wartung. Eine Gruppe ohne eingeschaltetes Modul verschwindet ganz.
+- Die Insel hat drei Seiten: «Insel» (Verhalten, Navigation, Kalender), «Kacheln» (Szenen, Kacheln, Kurzbefehle, Wetter), «Leuchten» (Leuchtumriss). Sie erscheinen nur, solange die Insel eingeschaltet ist (`SettingsPage.requires`).
+- Seitenleiste 220 pt breit, kein Name wird abgeschnitten. Kein `.toolbar(removing: .sidebarToggle)`: in diesem Fenster setzt es die Spaltenbreite ausser Kraft.
+- Die Suche findet Seiten über Titel, Gruppe, Modul und Stichwörter (`SettingsPage.keywords`), auch wenn das Modul aus ist.
+- Namen: «Downloads» (nicht «Herunterladen»), «Updates anderer Apps» für Homebrew und App Store; Updates von Vibrant+ selbst stehen unter «Über».
+

@@ -9,7 +9,13 @@ import UniformTypeIdentifiers
 import VibrantPlusKit
 
 enum SettingsPage: String, CaseIterable, Identifiable {
-    case windowTools, cleaner, uninstaller, homebrew, appUpdates, diskInstaller, systemMonitor, keepAwakeRules, quickTools, cleaning, mouse, finder, quitProtection, autoQuit, audioDevices, ocr, scratchpad, processes, general, features, clipboard, links, appGrid, devBar, island, pulsi, agent, assistant, meeting, screenshots, downloads, snippets, notion, today, stow, rowline, dial, voice, keys, appearance, shortcuts, permissions, about
+    // Sidebar order: the cases of each group appear in this order.
+    case general, features, appearance, shortcuts, permissions, about
+    case island, tiles, glow, pulsi, today, screenshots
+    case agent, assistant, voice, meeting
+    case downloads, stow, clipboard, snippets, links, notion, scratchpad, ocr
+    case windowTools, rowline, appGrid, dial, mouse, keys, finder, quitProtection, autoQuit, audioDevices, devBar, processes, quickTools
+    case cleaner, uninstaller, homebrew, appUpdates, diskInstaller, systemMonitor, keepAwakeRules, cleaning
     var id: String { rawValue }
 
     var title: String {
@@ -18,7 +24,7 @@ enum SettingsPage: String, CaseIterable, Identifiable {
         case .cleaner: "Bereinigen"
         case .uninstaller: "Apps entfernen"
         case .homebrew: "Homebrew"
-        case .appUpdates: "App-Updates"
+        case .appUpdates: "Updates anderer Apps"
         case .diskInstaller: "DMG-Installation"
         case .systemMonitor: "Systemmonitor"
         case .keepAwakeRules: "Wachhalten mit Regeln"
@@ -39,12 +45,14 @@ enum SettingsPage: String, CaseIterable, Identifiable {
         case .appGrid: "App-Raster"
         case .devBar: "Entwicklerleiste"
         case .island: "Insel"
+        case .tiles: "Kacheln"
+        case .glow: "Leuchten"
         case .pulsi: "Pulsi"
         case .agent: "Claude Code"
         case .assistant: "Assistent"
         case .meeting: "Besprechung"
         case .screenshots: "Bildschirmfotos"
-        case .downloads: "Herunterladen"
+        case .downloads: "Downloads"
         case .snippets: "Textbausteine"
         case .notion: "Notion"
         case .today: "Heute"
@@ -87,6 +95,8 @@ enum SettingsPage: String, CaseIterable, Identifiable {
         case .appGrid: "square.grid.3x3"
         case .devBar: "arrow.triangle.branch"
         case .island: "capsule.tophalf.filled"
+        case .tiles: "rectangle.3.group"
+        case .glow: "light.max"
         case .pulsi: "heart.fill"
         case .agent: "sparkles"
         case .assistant: "bubble.left.and.text.bubble.right"
@@ -108,21 +118,54 @@ enum SettingsPage: String, CaseIterable, Identifiable {
         }
     }
 
-    /// Sidebar sections, in order.
+    /// Sidebar sections, in order: grouped by what people want to do, not by how the app is built.
     enum Group: String, CaseIterable {
-        case general = "Allgemein", island = "Insel und Claude", tools = "Werkzeuge"
+        case general = "Allgemein", island = "Insel", ai = "KI und Stimme", files = "Dateien und Text"
+        case mac = "Mac", maintenance = "Wartung"
     }
 
     var group: Group {
         switch self {
-        case .windowTools, .cleaner, .uninstaller, .homebrew, .appUpdates, .diskInstaller, .systemMonitor, .keepAwakeRules, .quickTools, .cleaning: .tools
-        case .mouse, .finder, .quitProtection, .autoQuit, .audioDevices, .ocr, .scratchpad, .processes: .tools
         case .general, .features, .appearance, .shortcuts, .permissions, .about: .general
-        case .island, .pulsi, .agent, .assistant, .meeting, .today, .screenshots, .downloads: .island
-        case .clipboard, .links, .appGrid, .devBar, .snippets, .notion, .stow, .rowline, .dial, .voice, .keys: .tools
+        case .island, .tiles, .glow, .pulsi, .today, .screenshots: .island
+        case .agent, .assistant, .voice, .meeting: .ai
+        case .downloads, .stow, .clipboard, .snippets, .links, .notion, .scratchpad, .ocr: .files
+        case .windowTools, .rowline, .appGrid, .dial, .mouse, .keys, .finder, .quitProtection, .autoQuit, .audioDevices, .devBar,
+             .processes, .quickTools: .mac
+        case .cleaner, .uninstaller, .homebrew, .appUpdates, .diskInstaller, .systemMonitor, .keepAwakeRules, .cleaning: .maintenance
         }
     }
 
+    /// The page shows only while this module is on (pages of the island need the island).
+    var requires: Module? {
+        switch self {
+        case .tiles, .glow, .pulsi: .island
+        default: module
+        }
+    }
+
+    /// Words people search for that are not in the title: what is on the page.
+    var keywords: String {
+        switch self {
+        case .general: "Anmelden Autostart Sicherung Export Import Datenschutz"
+        case .features: "Module Profile einschalten ausschalten"
+        case .appearance: "Thema Hell Dunkel Liquid Glass Glas Insel-Stil Akzent Farbe Hintergrund"
+        case .shortcuts: "Tasten Kurzbefehle Hotkey"
+        case .permissions: "Bedienungshilfen Mikrofon Kalender Erinnerungen Bildschirmaufnahme Automation"
+        case .about: "Version Update aktualisieren"
+        case .island: "Notch Navigation Seiten Hover Maus Kalender Liedtexte Überblenden"
+        case .tiles: "Szenen Layout Reihenfolge Wetter Stadt Kurzbefehle"
+        case .glow: "Licht Leuchtumriss Puls Echo Netzteil Dauerlauf Komet Portal Lichtwelle"
+        case .pulsi: "Maskottchen Stimme Hey Pulsi"
+        case .agent: "Codex Hooks Freigabe Verbindung Verbrauch Token Automatik"
+        case .assistant: "Apple Intelligence Fragen Sprachmodell"
+        case .voice: "Diktieren Sprache Mikrofon"
+        case .downloads: "Herunterladen yt-dlp Video Audio Instagram"
+        case .keys: "Tastenklänge Geräusche Tasten anzeigen"
+        case .appUpdates: "Homebrew App Store"
+        default: ""
+        }
+    }
     var module: Module? {
         switch self {
         case .windowTools: .windowTools
@@ -171,9 +214,13 @@ struct SettingsRoot: View {
     @State private var prefs = Prefs.shared
 
     private func visible(_ page: SettingsPage) -> Bool {
-        let matches = page.title.localizedStandardContains(query) || (page.module?.matches(query) ?? false)
-        if !query.isEmpty { return matches }
-        return page.module.map { prefs.isOn($0) } ?? true
+        if !query.isEmpty {
+            // Every word must appear in the page's title, its words, its group or its module.
+            let text = [page.title, page.keywords, page.group.rawValue, page.module.map { $0.title + " " + $0.subtitle } ?? ""]
+                .joined(separator: " ")
+            return query.split(whereSeparator: \.isWhitespace).allSatisfy { text.localizedStandardContains(String($0)) }
+        }
+        return page.requires.map { prefs.isOn($0) } ?? true
     }
 
     static var initialPage: SettingsPage {
@@ -184,9 +231,13 @@ struct SettingsRoot: View {
         NavigationSplitView {
             List(selection: $navigation.page) {
                 ForEach(SettingsPage.Group.allCases, id: \.self) { group in
-                    Section(group.rawValue) {
-                        ForEach(SettingsPage.allCases.filter { $0.group == group && visible($0) }) { p in
-                            Label(p.title, systemImage: p.symbol).tag(p)
+                    let pages = SettingsPage.allCases.filter { $0.group == group && visible($0) }
+                    // A group whose modules are all off leaves no empty heading behind.
+                    if !pages.isEmpty {
+                        Section(group.rawValue) {
+                            ForEach(pages) { p in
+                                Label(p.title, systemImage: p.symbol).tag(p)
+                            }
                         }
                     }
                 }
@@ -197,8 +248,9 @@ struct SettingsRoot: View {
                     ContentUnavailableView.search(text: query)
                 }
             }
-            .navigationSplitViewColumnWidth(min: 192, ideal: 192, max: 240)
-            .toolbar(removing: .sidebarToggle)
+            // Wide enough for every page name: names are never cut. No `.toolbar(removing: .sidebarToggle)`:
+            // in this window it makes the split view ignore the column width.
+            .navigationSplitViewColumnWidth(220)
         } detail: {
             SettingsPageView(page: navigation.page)
                 .navigationTitle(navigation.page.title)
@@ -249,6 +301,8 @@ struct SettingsPageView: View {
             case .appGrid: AppGridSettings()
             case .devBar: DevBarSettings()
             case .island: IslandSettings()
+            case .tiles: TileSettings()
+            case .glow: GlowSettings()
             case .pulsi: PulsiSettings()
             case .agent: AgentSettings()
             case .assistant: AssistantSettings()
@@ -397,16 +451,11 @@ struct PulsiSettings: View {
 
 struct IslandSettings: View {
     @State private var prefs = Prefs.shared
-    @State private var available: [String] = []
-    @State private var city = Prefs.shared.weatherCity
 
     var body: some View {
-        IslandNavigationSettings()
-        SceneSettings()
-        GlowSettings()
         Section("Verhalten") {
             Toggle("Öffnen, wenn die Maus auf den Notch zeigt", isOn: $prefs.openOnHover)
-                .task { available = await ShortcutRunner.available(); CalendarService.shared.reload() }
+                .task { CalendarService.shared.reload() }
             Toggle("Countdown 5 Minuten vor einem Termin", isOn: $prefs.showMeetingCountdown)
             Toggle("Hinweise bei wenig Speicher, Akku oder Wärme", isOn: $prefs.healthNotes)
             Toggle("Synchronisierte Liedtexte zeigen (LRCLIB)", isOn: $prefs.lyricsEnabled)
@@ -417,6 +466,7 @@ struct IslandSettings: View {
             Text("Zwei Finger nach unten schliesst die offene Insel. Seitwärts am Rand der Kachelreihe wechselt die Seite. Hinweise sind nur die von Vibrant+ gezeigten, keine fremden Systemmitteilungen.")
                 .font(.caption).foregroundStyle(.secondary)
         }
+        IslandNavigationSettings()
         if CalendarService.shared.granted {
             Section("Kalender") {
                 ForEach(CalendarService.shared.calendars, id: \.id) { cal in
@@ -434,6 +484,17 @@ struct IslandSettings: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
         }
+    }
+}
+
+/// The island's tiles: scenes, which tiles and in what order, the Shortcuts buttons and the weather place.
+struct TileSettings: View {
+    @State private var prefs = Prefs.shared
+    @State private var available: [String] = []
+    @State private var city = Prefs.shared.weatherCity
+
+    var body: some View {
+        SceneSettings()
         Section {
             List {
                 ForEach(prefs.tileOrder) { t in
@@ -476,6 +537,7 @@ struct IslandSettings: View {
         } footer: {
             Text("Bis zu 8 Kurzbefehle aus der Kurzbefehle-App erscheinen als Knöpfe in der Kachel «Kurzbefehle». So erweiterst du die Insel ohne Programmieren: alles, was ein Kurzbefehl kann (Smart Home, Nachrichten, Dateien …), liegt dann einen Klick entfernt.")
         }
+        .task { available = await ShortcutRunner.available() }
         Section {
             TextField("Stadt", text: $city, prompt: Text("z. B. Zürich"))
                 .onSubmit { prefs.weatherCity = city; WeatherService.shared.refresh(force: true) }

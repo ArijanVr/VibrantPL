@@ -33,6 +33,12 @@ enum SnapshotRunner {
         IslandModel.shared.hasNotch = true
 
         Task {
+            if ProcessInfo.processInfo.environment["APP_SNAPSHOT_SCOPE"] == "settings" {
+                await DesignSnapshots.settings(into: dir)
+                print("SNAPSHOT settings wrote \(dir.path)")
+                fflush(stdout)
+                exit(0)
+            }
             if ProcessInfo.processInfo.environment["APP_SNAPSHOT_SCOPE"] == "island" {
                 await DesignSnapshots.run(into: dir)
                 print("SNAPSHOT island wrote \(dir.path)")

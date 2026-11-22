@@ -137,6 +137,51 @@ enum DesignSnapshots {
         await shot("edge-glow-idle", dir, dark: true) { _, _ in GlowCenter.shared.fire() }
     }
 
+    /// The Settings window as people see it, then every page at its full height.
+    ///   APP_SNAPSHOT_SCOPE=settings
+    static func settings(into dir: URL) async {
+        let prefs = Prefs.shared
+        prefs.onboarded = true
+        // What one real person has switched on, then everything.
+        let everyday: Set<Module> = [.today, .island, .keepAwakeRules, .appUpdates, .downloads, .clipboard, .stow, .screenshots,
+                                     .assistant, .links, .systemMonitor, .cleaner, .cleaning, .agent]
+        for (name, modules) in [("everyday", everyday), ("all", Set(Module.allCases))] {
+            prefs.modules = modules
+            for dark in [false, true] {
+                SettingsNavigation.shared.page = .general
+                await window("settings-\(name)-\(dark ? "dark" : "light")", dir, dark: dark,
+                             size: CGSize(width: 760, height: 560), titled: true) { SettingsRoot() }
+            }
+        }
+        for page in SettingsPage.allCases {
+            await window("page-\(page.rawValue)", dir, dark: false, size: CGSize(width: 570, height: 1600), titled: false) {
+                SettingsPageView(page: page).frame(width: 570).fixedSize(horizontal: false, vertical: true)
+                    .frame(maxHeight: .infinity, alignment: .top)
+            }
+        }
+    }
+
+    private static func window<V: View>(_ name: String, _ dir: URL, dark: Bool, size: CGSize, titled: Bool,
+                                        @ViewBuilder content: () -> V) async {
+        let host = NSHostingView(rootView: content().themed().environment(\.colorScheme, dark ? .dark : .light).noInitialFocus())
+        host.sizingOptions = []
+        let window = NSWindow(contentRect: CGRect(origin: .zero, size: size),
+                              styleMask: titled ? [.titled, .closable, .fullSizeContentView] : [.borderless],
+                              backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        window.title = "Vibrant+ Einstellungen"
+        window.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
+        window.backgroundColor = dark ? NSColor(white: 0.12, alpha: 1) : .windowBackgroundColor
+        window.contentView = host
+        window.center()
+        window.orderBack(nil)
+        try? await Task.sleep(for: .milliseconds(900))
+        let file = dir.appending(path: "\(name).png").path
+        let result = await Run.async("/usr/sbin/screencapture", ["-x", "-o", "-l", String(window.windowNumber), file], timeout: 5)
+        if result.status != 0 { print("SNAPSHOT failed: \(name)") }
+        window.orderOut(nil)
+    }
+
     private static func shot(_ name: String, _ dir: URL, dark: Bool,
                              before: ((NSView, NSWindow) -> Void)? = nil) async {
         await shot(name, dir, dark: dark, content: IslandRoot(), before: before)

@@ -53,7 +53,7 @@ struct IslandNavigationSettings: View {
                 Button("Zurücksetzen rückgängig machen") { prefs.islandNavigation = beforeReset; self.beforeReset = nil }
             }
         } header: {
-            Text("Navigation über den Kacheln")
+            Text("Navigation")
         } footer: {
             Text("Neben dem Notch bleiben die Seiten einzelne Symbole, auch wenn alle eingeschaltet sind; die Namen stehen in der Hilfe. Über den Kacheln kannst du Namen dazu zeigen. Das Ausblenden einer Seite stoppt kein Modul. Mindestens eine verfügbare Seite bleibt erreichbar.")
         }

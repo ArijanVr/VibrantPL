@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.1.1 — 2026-11-22
+
+Übersichtlichere Einstellungen.
+
+- Seitenleiste nach Aufgaben geordnet: Allgemein, Insel, KI und Stimme, Dateien und Text, Mac, Wartung. Gruppen ohne eingeschaltetes Modul verschwinden.
+- Die Insel hat drei Seiten statt einer langen: «Insel» (Verhalten, Navigation, Kalender), «Kacheln» (Szenen, Kacheln, Kurzbefehle, Wetter) und «Leuchten».
+- Kein Seitenname wird mehr abgeschnitten: Die Seitenleiste ist breiter.
+- Die Suche findet Seiten auch über Stichwörter wie «Glas», «Codex», «Update» oder «Szenen».
+- Klarere Namen: «Downloads», «Updates anderer Apps». Updates von Vibrant+ selbst stehen unter «Über».
+- In der Insel: Rechtsklick auf die Seiten-Symbole bietet «Kacheln wählen…».
+
 ## 1.1.0 — 2026-11-22
 
 Neu gestaltete Insel, neue Kacheln und Funktionen, Codex-Anbindung und ein Hinweis bei neuen Versionen.

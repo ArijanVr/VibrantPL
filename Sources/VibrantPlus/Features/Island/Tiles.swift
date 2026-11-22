@@ -36,7 +36,7 @@ struct TileStrip: View {
                     }
                     if tiles.isEmpty {
                         IslandCard(width: Metrics.wideTileWidth) {
-                            Text("Keine Kacheln eingeschaltet. Wähle sie in den Einstellungen unter Insel.")
+                            Text("Keine Kacheln eingeschaltet. Wähle sie in den Einstellungen unter Kacheln.")
                                 .font(TypeStyle.islandBody).foregroundStyle(IslandColor.secondaryText)
                         }
                     }
@@ -747,7 +747,7 @@ struct ShortcutsTile: View {
             VStack(alignment: .leading, spacing: Space.sm) {
                 CardHeader(title: "Kurzbefehle", symbol: "bolt.fill")
                 if prefs.shortcutButtons.isEmpty {
-                    IslandEmpty(symbol: "bolt", text: "Wähle in den Einstellungen unter Insel, welche Kurzbefehle hier erscheinen.")
+                    IslandEmpty(symbol: "bolt", text: "Wähle in den Einstellungen unter Kacheln, welche Kurzbefehle hier erscheinen.")
                 } else {
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: Space.xs), GridItem(.flexible(), spacing: Space.xs)], spacing: Space.xs) {
                         ForEach(prefs.shortcutButtons) { b in

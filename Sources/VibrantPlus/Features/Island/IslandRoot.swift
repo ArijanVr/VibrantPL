@@ -953,6 +953,7 @@ struct IslandPageTabs: View {
         .accessibilityLabel("Seite")
         .contextMenu {
             Button("Navigation anpassen…") { AppActions.openSettings(.island) }
+            Button("Kacheln wählen…") { AppActions.openSettings(.tiles) }
         }
     }
 
