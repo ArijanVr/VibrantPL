@@ -456,6 +456,16 @@ final class Prefs {
             d.set(true, forKey: "tiles.added13Migrated")
             d.set(tiles.map(\.rawValue), forKey: "tiles.on")
         }
+        // The tiles added after 1.0 sit right behind «Timer» once, so they are seen without scrolling to the end.
+        if !d.bool(forKey: "tiles.moveNewForwardMigrated") {
+            let fresh: [TileKind] = [.teleprompter, .commands, .browserTab, .message]
+            var o = (order + TileKind.defaultOrder.filter { !order.contains($0) }).filter { !fresh.contains($0) }
+            let at = (o.firstIndex(of: .timer) ?? o.count - 1) + 1
+            o.insert(contentsOf: fresh, at: min(at, o.count))
+            tileOrder = o
+            d.set(o.map(\.rawValue), forKey: "tiles.order")
+            d.set(true, forKey: "tiles.moveNewForwardMigrated")
+        }
         // Apps beenden and Besprechung arrived in 3.8: on once, so they are found.
         if !d.bool(forKey: "tiles.added38Migrated") {
             tiles.formUnion(TileKind.added38)

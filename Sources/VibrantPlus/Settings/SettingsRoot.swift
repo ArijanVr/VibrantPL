@@ -315,9 +315,8 @@ struct GeneralSettings: View {
     }
 }
 
-struct PulsiSettings: View {
+struct GlowSettings: View {
     @State private var prefs = Prefs.shared
-    private var wake = PulsiWake.shared
     var body: some View {
         Section("Leuchtumriss") {
             Toggle("Insel leuchtet, wenn Claude startet, wartet oder fertig ist", isOn: $prefs.islandGlow)
@@ -333,6 +332,13 @@ struct PulsiSettings: View {
             Text("Ein Puls-Umriss läuft kurz um die Insel; bei einer Frage bleibt er stehen. Das Kurzbefehl-Echo braucht die Bedienungshilfen-Berechtigung. Mit «Bewegung reduzieren» ohne Lauf.")
                 .font(.caption).foregroundStyle(.secondary)
         }
+    }
+}
+
+struct PulsiSettings: View {
+    @State private var prefs = Prefs.shared
+    private var wake = PulsiWake.shared
+    var body: some View {
         Section("Pulsi") {
             Toggle("Pulsi am Notch zeigen", isOn: $prefs.mascot)
                 .onChange(of: prefs.mascot) {
@@ -392,6 +398,7 @@ struct IslandSettings: View {
     var body: some View {
         IslandNavigationSettings()
         SceneSettings()
+        GlowSettings()
         Section("Verhalten") {
             Toggle("Öffnen, wenn die Maus auf den Notch zeigt", isOn: $prefs.openOnHover)
                 .task { available = await ShortcutRunner.available(); CalendarService.shared.reload() }
