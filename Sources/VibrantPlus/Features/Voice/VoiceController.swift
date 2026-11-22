@@ -16,7 +16,7 @@ import VibrantPlusKit
 final class VoiceController {
     static let shared = VoiceController()
 
-    enum Mode { case dictate, command, ask }
+    enum Mode { case dictate, command, ask, reply }
 
     private(set) var listening: Mode?
     private(set) var partial = ""
@@ -70,6 +70,16 @@ final class VoiceController {
         Assistant.shared.stopSpeaking()
         IslandModel.shared.sticky = true
         listen(handsFree: true)
+    }
+
+    /// Listens once and hands the words to `handler` (used to answer Claude by voice). Nothing is typed or sent elsewhere.
+    @ObservationIgnored private var replyHandler: ((String) -> Void)?
+    func listenForReply(_ handler: @escaping (String) -> Void) {
+        guard listening == nil else { return }
+        replyHandler = handler
+        IslandModel.shared.sticky = true
+        handsFree = true
+        begin(.reply)
     }
 
     func listen(handsFree: Bool) {
@@ -188,6 +198,10 @@ final class VoiceController {
                 Self.type(clean)
             case .command: perform(text)
             case .ask: askAssistant(text)
+            case .reply:
+                let handler = replyHandler
+                replyHandler = nil
+                handler?(text)
             }
         }
     }

@@ -319,6 +319,20 @@ struct PulsiSettings: View {
     @State private var prefs = Prefs.shared
     private var wake = PulsiWake.shared
     var body: some View {
+        Section("Leuchtumriss") {
+            Toggle("Insel leuchtet, wenn Claude startet, wartet oder fertig ist", isOn: $prefs.islandGlow)
+            Picker("Bewegung", selection: $prefs.glowStyle) {
+                ForEach(GlowStyle.allCases) { Text($0.title).tag($0) }
+            }
+            .disabled(!prefs.islandGlow)
+            Toggle("Auch bei Kopieren, Einfügen, Ausschneiden und Zurücknehmen (⌘C, ⌘V, ⌘X, ⌘Z)", isOn: $prefs.shortcutEcho)
+                .disabled(!prefs.islandGlow)
+                .onChange(of: prefs.shortcutEcho) { KeyMonitor.shared.update() }
+            Toggle("Beim Anstecken des Netzteils", isOn: $prefs.chargeGlow)
+                .disabled(!prefs.islandGlow)
+            Text("Ein Puls-Umriss läuft kurz um die Insel; bei einer Frage bleibt er stehen. Das Kurzbefehl-Echo braucht die Bedienungshilfen-Berechtigung. Mit «Bewegung reduzieren» ohne Lauf.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
         Section("Pulsi") {
             Toggle("Pulsi am Notch zeigen", isOn: $prefs.mascot)
                 .onChange(of: prefs.mascot) {
@@ -377,6 +391,7 @@ struct IslandSettings: View {
 
     var body: some View {
         IslandNavigationSettings()
+        SceneSettings()
         Section("Verhalten") {
             Toggle("Öffnen, wenn die Maus auf den Notch zeigt", isOn: $prefs.openOnHover)
                 .task { available = await ShortcutRunner.available(); CalendarService.shared.reload() }

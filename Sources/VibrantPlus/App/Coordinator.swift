@@ -74,7 +74,7 @@ final class Coordinator {
         LinkCleanerService.shared.update()
         syncClipboard()
         syncCalendar()
-        if prefs.isOn(.keys) { KeyMonitor.shared.update() }
+        KeyMonitor.shared.update() // also serves the shortcut echo, so it decides itself
         if prefs.isOn(.dial) { DialController.shared.relayout() }
         HotKeys.shared.refresh()
     }
@@ -86,6 +86,7 @@ final class Coordinator {
             SystemStats.shared.startSlow()
             PulsiSounds.shared.prepare()
             PulsiWake.shared.update()
+            ChargeGlow.shared.start()
             updateTileServices()
         case .agent: AgentStore.shared.start()
         case .today:
@@ -117,6 +118,7 @@ final class Coordinator {
         case .island:
             IslandController.shared.stop()
             ShelfPalette.shared.close()
+            ChargeGlow.shared.stop()
             PulsiWake.shared.stop()
             PulsiSounds.shared.shutdown()
             SystemStats.shared.stopSlow()

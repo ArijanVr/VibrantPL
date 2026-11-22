@@ -21,7 +21,7 @@ final class KeyMonitor {
     /// Starts or stops depending on the settings.
     func update() {
         let p = Prefs.shared
-        let need = p.isOn(.keys) && (p.keySounds || p.showKeys)
+        let need = p.isOn(.keys) && (p.keySounds || p.showKeys) || p.isOn(.island) && p.islandGlow && p.shortcutEcho
         if need && monitor == nil {
             // A global monitor made before the permission exists never gets keys: wait for the grant.
             guard Permission.accessibilityTrusted else { return }
@@ -46,6 +46,8 @@ final class KeyMonitor {
 
     private func key(down: Bool, repeatKey: Bool, code: UInt16, flags: NSEvent.ModifierFlags, chars: String) {
         let p = Prefs.shared
+        if down, !repeatKey, p.shortcutEcho, flags.intersection([.command, .control, .option, .shift]) == .command,
+           ["c", "v", "x", "z"].contains(chars.lowercased()) { GlowCenter.shared.fire() }
         if p.keySounds, !repeatKey { sounds.play(down: down, keyCode: code, volume: Float(p.keySoundVolume)) }
         guard down, p.showKeys else { return }
         let mods = flags.intersection([.command, .control, .option])
@@ -198,6 +200,14 @@ nonisolated final class KeySoundPlayer: @unchecked Sendable {
         case .thock: (0.11, [Voice(freq: 190, decay: 38, amp: 1.0), Voice(freq: 330, decay: 55, amp: 0.55), Voice(freq: 780, decay: 110, amp: 0.2)], 0.3, 380, 0, 0.9)
         case .blue: (0.07, [Voice(freq: 2300, decay: 150, amp: 0.45), Voice(freq: 980, decay: 90, amp: 0.45), Voice(freq: 3900, decay: 260, amp: 0.2)], 0.4, 450, 0.9, 0.7)
         case .bubble: (0.08, [Voice(freq: 520, decay: 48, amp: 0.9), Voice(freq: 1040, decay: 70, amp: 0.35)], 0.1, 500, 0, 0.8)
+        case .marimba: (0.16, [Voice(freq: 660, decay: 22, amp: 0.9), Voice(freq: 2640, decay: 60, amp: 0.2)], 0.05, 600, 0, 0.85)
+        case .crystal: (0.18, [Voice(freq: 3200, decay: 20, amp: 0.55), Voice(freq: 4800, decay: 30, amp: 0.35), Voice(freq: 7100, decay: 45, amp: 0.15)], 0.08, 700, 0.2, 0.6)
+        case .raindrop: (0.09, [Voice(freq: 900, decay: 70, amp: 0.8), Voice(freq: 1800, decay: 110, amp: 0.25)], 0.12, 420, 0, 0.8)
+        case .stones: (0.06, [Voice(freq: 340, decay: 120, amp: 0.7), Voice(freq: 760, decay: 160, amp: 0.4)], 0.8, 200, 0, 0.8)
+        case .bricks: (0.05, [Voice(freq: 1100, decay: 160, amp: 0.5), Voice(freq: 2200, decay: 220, amp: 0.3)], 0.7, 260, 0.7, 0.7)
+        case .arcade: (0.07, [Voice(freq: 880, decay: 40, amp: 0.7), Voice(freq: 2640, decay: 50, amp: 0.3), Voice(freq: 4400, decay: 60, amp: 0.18)], 0, 300, 0, 0.55)
+        case .marbles: (0.07, [Voice(freq: 2100, decay: 85, amp: 0.55), Voice(freq: 3300, decay: 130, amp: 0.3)], 0.3, 500, 0.6, 0.65)
+        case .cockpit: (0.14, [Voice(freq: 1320, decay: 28, amp: 0.6), Voice(freq: 1980, decay: 34, amp: 0.4)], 0.04, 500, 0, 0.6)
         }
         let rate = format.sampleRate
         let len = (release ? length * 0.55 : length) * (heavy ? 1.3 : 1)

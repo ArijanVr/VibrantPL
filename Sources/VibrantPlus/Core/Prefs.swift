@@ -163,7 +163,7 @@ enum TileCategory: String, CaseIterable, Identifiable {
 enum TileKind: String, CaseIterable, Identifiable, Codable {
     case nowPlaying, agent, nextEvent, weather, clock, system, todo, timer, shelf, clipboard, recentApps, controls, shortcuts
     case quickNote, converter, colorPicker, mirror, usage, reminders
-    case quitApps, meeting
+    case quitApps, meeting, teleprompter, commands, browserTab
 
     var id: String { rawValue }
 
@@ -190,6 +190,9 @@ enum TileKind: String, CaseIterable, Identifiable, Codable {
         case .reminders: "Erinnerungen"
         case .quitApps: "Apps beenden"
         case .meeting: "Besprechung"
+        case .teleprompter: "Teleprompter"
+        case .commands: "Befehle"
+        case .browserTab: "Browser-Tab"
         }
     }
 
@@ -216,6 +219,9 @@ enum TileKind: String, CaseIterable, Identifiable, Codable {
         case .reminders: "checklist"
         case .quitApps: "xmark.app"
         case .meeting: "text.bubble"
+        case .teleprompter: "text.alignleft"
+        case .commands: "terminal"
+        case .browserTab: "safari"
         }
     }
 
@@ -225,18 +231,21 @@ enum TileKind: String, CaseIterable, Identifiable, Codable {
         case .nowPlaying, .nextEvent, .weather, .todo, .reminders, .clock: .start
         case .system, .recentApps, .controls, .shortcuts, .clipboard, .shelf, .quitApps: .mac
         case .agent, .usage: .ai
-        case .timer, .quickNote, .converter, .colorPicker, .mirror, .meeting: .tools
+        case .timer, .quickNote, .converter, .colorPicker, .mirror, .meeting, .teleprompter, .commands, .browserTab: .tools
         }
     }
 
     static let defaultOrder: [TileKind] = [.nowPlaying, .agent, .nextEvent, .weather, .todo, .clock, .system, .timer, .shelf, .clipboard, .recentApps, .controls, .shortcuts,
-                                           .quickNote, .converter, .colorPicker, .mirror, .usage, .reminders, .quitApps, .meeting]
+                                           .quickNote, .converter, .colorPicker, .mirror, .usage, .reminders, .quitApps, .meeting, .teleprompter, .commands, .browserTab]
     /// Tiles that arrived in 3.3: switched on once for people who set up an earlier version.
     static let added33: [TileKind] = [.quickNote, .converter, .colorPicker, .mirror]
     /// Tiles that arrived in 3.5: switched on once, like 3.3.
     static let added35: [TileKind] = [.usage, .reminders]
     /// Tiles that arrived in 3.8: switched on once, like 3.3.
     static let added38: [TileKind] = [.quitApps, .meeting]
+    /// Teleprompter arrived after 1.0: switched on once, like 3.3.
+    static let added11: [TileKind] = [.teleprompter]
+    static let added12: [TileKind] = [.commands, .browserTab]
     /// Cards that are 312 pt wide anyway: «Breit» changes nothing for them.
     static let alwaysWide: Set<TileKind> = [.nowPlaying, .agent, .controls, .usage]
     var canWiden: Bool { !Self.alwaysWide.contains(self) }
@@ -257,6 +266,7 @@ enum AppTheme: String, CaseIterable, Identifiable, Codable {
 
 enum KeySoundProfile: String, CaseIterable, Identifiable, Codable {
     case soft, click, typewriter, thock, blue, bubble, cherry, kenneyClick, kenneyTick
+    case marimba, crystal, raindrop, stones, bricks, arcade, marbles, cockpit
     var id: String { rawValue }
     /// File prefix in Resources/KeySounds when the profile plays recordings; nil when it is synthesized.
     nonisolated var recordingPrefix: String? {
@@ -278,6 +288,14 @@ enum KeySoundProfile: String, CaseIterable, Identifiable, Codable {
         case .cherry: "Echte Aufnahme (Cherry)"
         case .kenneyClick: "Klick (Kenney)"
         case .kenneyTick: "Tick (Kenney)"
+        case .marimba: "Marimba"
+        case .crystal: "Kristall"
+        case .raindrop: "Regentropfen"
+        case .stones: "Flusssteine"
+        case .bricks: "Bausteine"
+        case .arcade: "Arcade (8-Bit)"
+        case .marbles: "Glasmurmeln"
+        case .cockpit: "Raumschiff-Cockpit"
         }
     }
 }
@@ -309,6 +327,13 @@ final class Prefs {
     /// A finished meeting transcript is also written as an Apple Notes note.
     /// Pulsi, the mascot on the notch.
     var mascot: Bool { didSet { d.set(mascot, forKey: "island.mascot") } }
+    /// A Puls outline lights up around the island when Claude starts, waits for the person or finishes.
+    var islandGlow: Bool { didSet { d.set(islandGlow, forKey: "island.glow") } }
+    var glowStyle: GlowStyle { didSet { d.set(glowStyle.rawValue, forKey: "island.glowStyle") } }
+    /// The outline lights up on copy, paste, cut and undo (needs the keyboard permission).
+    var shortcutEcho: Bool { didSet { d.set(shortcutEcho, forKey: "island.shortcutEcho") } }
+    /// The outline lights up when the charger is plugged in.
+    var chargeGlow: Bool { didSet { d.set(chargeGlow, forKey: "island.chargeGlow") } }
     /// Pulsi reads notices with the system voice (Siri / Spoken Content). Off: toasts only.
     var mascotSpeaks: Bool { didSet { d.set(mascotSpeaks, forKey: "island.mascotSpeaks") } }
     var mascotPlaySounds: Bool { didSet { d.set(mascotPlaySounds, forKey: "island.mascotSounds") } }
@@ -364,6 +389,11 @@ final class Prefs {
     var downloadQuality: VideoQuality { didSet { d.set(downloadQuality.rawValue, forKey: "downloads.quality") } }
     /// What was typed but not saved yet. A draft outlives the tile: a request or a reminder that
     /// takes the island over must never swallow a half-written thought.
+    /// The script and speed (points per second) of the teleprompter.
+    var teleprompterText: String { didSet { d.set(teleprompterText, forKey: "island.teleprompterText") } }
+    var teleprompterSpeed: Double { didSet { d.set(teleprompterSpeed, forKey: "island.teleprompterSpeed") } }
+    /// Shell commands saved in the «Befehle» tile; they run only when the person presses their button.
+    var savedCommands: [String] { didSet { d.set(savedCommands, forKey: "island.savedCommands") } }
     var noteDraft: String { didSet { d.set(noteDraft, forKey: "island.noteDraft") } }
     var converterDraft: String { didSet { d.set(converterDraft, forKey: "island.converterDraft") } }
 
@@ -404,6 +434,16 @@ final class Prefs {
             d.set(true, forKey: "tiles.added35Migrated")
             d.set(tiles.map(\.rawValue), forKey: "tiles.on")
         }
+        if !d.bool(forKey: "tiles.added11Migrated") {
+            tiles.formUnion(TileKind.added11)
+            d.set(true, forKey: "tiles.added11Migrated")
+            d.set(tiles.map(\.rawValue), forKey: "tiles.on")
+        }
+        if !d.bool(forKey: "tiles.added12Migrated") {
+            tiles.formUnion(TileKind.added12)
+            d.set(true, forKey: "tiles.added12Migrated")
+            d.set(tiles.map(\.rawValue), forKey: "tiles.on")
+        }
         // Apps beenden and Besprechung arrived in 3.8: on once, so they are found.
         if !d.bool(forKey: "tiles.added38Migrated") {
             tiles.formUnion(TileKind.added38)
@@ -413,6 +453,10 @@ final class Prefs {
         tilesOn = tiles
         wideTiles = Set((d.stringArray(forKey: "tiles.wide") ?? []).compactMap(TileKind.init))
         mascot = d.object(forKey: "island.mascot") as? Bool ?? true
+        islandGlow = d.object(forKey: "island.glow") as? Bool ?? true
+        glowStyle = GlowStyle(rawValue: d.string(forKey: "island.glowStyle") ?? "") ?? .wave
+        shortcutEcho = d.object(forKey: "island.shortcutEcho") as? Bool ?? false
+        chargeGlow = d.object(forKey: "island.chargeGlow") as? Bool ?? true
         mascotSpeaks = d.bool(forKey: "island.mascotSpeaks")
         mascotPlaySounds = d.object(forKey: "island.mascotSounds") as? Bool ?? true
         mascotTapSound = d.string(forKey: "island.mascotTapSound") ?? "Tink"
@@ -430,6 +474,10 @@ final class Prefs {
         downloadAudio = AudioFormat(rawValue: d.string(forKey: "downloads.audio") ?? "") ?? .m4a
         downloadQuality = VideoQuality(rawValue: d.string(forKey: "downloads.quality") ?? "") ?? .standard
         noteDraft = d.string(forKey: "island.noteDraft") ?? ""
+        savedCommands = d.stringArray(forKey: "island.savedCommands") ?? []
+        teleprompterText = d.string(forKey: "island.teleprompterText") ?? ""
+        let speed = d.double(forKey: "island.teleprompterSpeed")
+        teleprompterSpeed = speed > 0 ? speed : 24
         converterDraft = d.string(forKey: "island.converterDraft") ?? ""
         openOnHover = d.object(forKey: "island.hover") as? Bool ?? true
         showMeetingCountdown = d.object(forKey: "island.meeting") as? Bool ?? true

@@ -51,6 +51,12 @@ struct IslandRoot: View {
                                                                : CGFloat(NotchGeometry.closedRadius(notchHeight: model.notchSize.height)),
                                           shoulder: shoulder), open: model.isOpen)
             .shadow(color: model.isOpen ? Shadow.card : .clear, radius: Shadow.cardRadius, y: Shadow.cardY)
+            .overlay {
+                IslandGlow(shape: IslandShape(radius: model.isOpen ? CGFloat(NotchGeometry.openRadius)
+                                                                   : CGFloat(NotchGeometry.closedRadius(notchHeight: model.notchSize.height)),
+                                              shoulder: shoulder),
+                           status: agent.headline?.status)
+            }
             .scaleEffect(model.growing ? 0.8 : 1, anchor: .top)
             .environment(\.colorScheme, IslandColor.scheme)
             // Pulsi peeks out under the notch while the mouse rests on it, and hangs on the open island.
@@ -569,6 +575,7 @@ struct AgentRequestCard: View {
     var pending: AgentStore.Pending
     /// Question text -> chosen option labels (one, or several for multi-select).
     @State private var choices: [String: Set<String>] = [:]
+    @State private var step = 0
     private var agent = AgentStore.shared
 
     var body: some View {
@@ -651,6 +658,29 @@ struct AgentRequestCard: View {
                 IslandPillButton(title: "Ablehnen", kind: .danger) { agent.answer(pending, .deny) }
                     .keyboardShortcut(.cancelAction)
                 IslandPillButton(title: "Im Terminal") { agent.answerInTerminal(pending) }
+                if Prefs.shared.isOn(.voice) {
+                    IslandIconButton(symbol: "mic", label: "Antwort sprechen", size: 24) {
+                        let risky = !pending.permission.warnings.isEmpty
+                        VoiceController.shared.listenForReply { spoken in
+                            switch VoiceReply.permission(from: spoken) {
+                            case .allow where !risky: agent.answer(pending, .allow)
+                            case .allow: IslandModel.shared.show(Toast(symbol: "exclamationmark.triangle", text: "Riskanter Befehl: bitte mit ⌘↩ erlauben", warm: true))
+                            case .deny: agent.answer(pending, .deny)
+                            case nil: IslandModel.shared.show(Toast(symbol: "mic.slash", text: "Nicht verstanden: «\(spoken)». Sag «erlauben» oder «ablehnen»."))
+                            }
+                        }
+                    }
+                }
+                // Not for risky commands: those are always asked, even in an automatic chat.
+                if pending.permission.warnings.isEmpty {
+                    IslandPillButton(title: "Chat automatisch") {
+                        agent.setAutoAllow(true, for: pending.event.sessionID)
+                        agent.answer(pending, .allow)
+                    }
+                    .help("Erlaubt alle weiteren Anfragen dieses Chats ohne Frage, bis Vibrant+ beendet wird. Riskante Befehle fragen weiter.")
+                } else if agent.autoAllowed.contains(pending.event.sessionID) {
+                    IslandPillButton(title: "Automatik aus") { agent.setAutoAllow(false, for: pending.event.sessionID) }
+                }
                 Spacer()
                 if pending.event.offersAlways {
                     IslandPillButton(title: "Immer erlauben", kind: .warm) { agent.answer(pending, .always) }
@@ -663,12 +693,18 @@ struct AgentRequestCard: View {
         }
     }
 
+    /// One question at a time, with Zurück/Weiter, so «Antworten» always stays in reach.
     private var questions: some View {
         let list = pending.questions
         let complete = list.allSatisfy { !(choices[$0.question] ?? []).isEmpty }
+        let i = min(step, max(list.count - 1, 0))
         return VStack(alignment: .leading, spacing: Space.md) {
-            ForEach(list) { q in
+            if let q = list[safe: i] {
                 VStack(alignment: .leading, spacing: Space.xs) {
+                    if list.count > 1 {
+                        Text("Frage \(i + 1) von \(list.count)").font(TypeStyle.islandLabel.monospacedDigit())
+                            .foregroundStyle(IslandColor.tertiaryText)
+                    }
                     Text(q.question).font(TypeStyle.islandBody.weight(.medium))
                     if q.multiSelect {
                         Text("Mehrere möglich").font(TypeStyle.islandCaption).foregroundStyle(IslandColor.tertiaryText)
@@ -686,7 +722,24 @@ struct AgentRequestCard: View {
             }
             HStack {
                 IslandPillButton(title: "Im Terminal antworten") { agent.answerInTerminal(pending) }
+                if Prefs.shared.isOn(.voice), let q = list[safe: i] {
+                    IslandIconButton(symbol: "mic", label: "Antwort sprechen", size: 24) {
+                        VoiceController.shared.listenForReply { spoken in
+                            if let option = VoiceReply.option(in: q.options, from: spoken) {
+                                choices[q.question] = q.multiSelect ? (choices[q.question] ?? []).union([option]) : [option]
+                            } else {
+                                IslandModel.shared.show(Toast(symbol: "mic.slash", text: "Keine Antwort erkannt: «\(spoken)»"))
+                            }
+                        }
+                    }
+                }
                 Spacer()
+                if i > 0 { IslandPillButton(title: "Zurück") { step = i - 1 } }
+                if i < list.count - 1 {
+                    let answered = !(choices[list[i].question] ?? []).isEmpty
+                    IslandPillButton(title: "Weiter", kind: answered ? .primary : .secondary) { step = i + 1 }
+                        .disabled(!answered)
+                }
                 // Until every question has an answer the button is secondary and inactive, but stays
                 // readable (no extra dimming on top of the disabled state).
                 IslandPillButton(title: "Antworten", kind: complete ? .primary : .secondary) {
@@ -698,6 +751,10 @@ struct AgentRequestCard: View {
             }
         }
     }
+}
+
+private extension Array {
+    subscript(safe i: Int) -> Element? { indices.contains(i) ? self[i] : nil }
 }
 
 /// The options of one question. Multi-select questions toggle; Claude's explanation of an

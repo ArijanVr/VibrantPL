@@ -143,6 +143,9 @@ struct TileStrip: View {
         case .controls: ControlsTile()
         case .shortcuts: ShortcutsTile()
         case .quickNote: QuickNoteTile()
+        case .teleprompter: TeleprompterTile()
+        case .commands: CommandsTile()
+        case .browserTab: BrowserTabTile()
         case .converter: ConverterTile()
         case .colorPicker: ColorPickerTile()
         case .mirror: MirrorTile()
@@ -546,6 +549,9 @@ struct TimerTile: View {
 struct ShelfTile: View {
     private var shelf = Shelf.shared
     @State private var targeted = false
+    @State private var filter = ShelfFilter.all
+
+    private var shown: [URL] { shelf.files.filter(filter.matches) }
 
     var body: some View {
         IslandCard(width: Metrics.wideTileWidth - 64) {
@@ -564,6 +570,13 @@ struct ShelfTile: View {
                             .font(TypeStyle.islandLabel).foregroundStyle(IslandColor.accentText)
                     }
                 }
+                if shelf.files.count > 1 {
+                    HStack(spacing: Space.xs) {
+                        ForEach(ShelfFilter.allCases) { f in
+                            IslandPillButton(title: f.title, kind: filter == f ? .primary : .secondary) { filter = f }
+                        }
+                    }
+                }
                 if shelf.files.isEmpty {
                     Spacer()
                     Text("Dateien hierher ziehen, später wieder herausziehen.")
@@ -572,7 +585,7 @@ struct ShelfTile: View {
                 } else {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: Space.sm) {
-                            ForEach(shelf.files, id: \.self) { url in
+                            ForEach(shown, id: \.self) { url in
                                 VStack(spacing: 2) {
                                     Image(nsImage: NSWorkspace.shared.icon(forFile: url.path))
                                         .resizable().frame(width: 40, height: 40)
@@ -603,6 +616,28 @@ struct ShelfTile: View {
                 await MainActor.run { shelf.add(urls) }
             }
             return true
+        }
+    }
+}
+
+/// Which dropped files the shelf shows.
+enum ShelfFilter: String, CaseIterable, Identifiable {
+    case all, images, documents
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .all: "Alle"
+        case .images: "Bilder"
+        case .documents: "Dokumente"
+        }
+    }
+    func matches(_ url: URL) -> Bool {
+        let type = UTType(filenameExtension: url.pathExtension)
+        let isImage = type?.conforms(to: .image) ?? false
+        switch self {
+        case .all: return true
+        case .images: return isImage
+        case .documents: return !isImage
         }
     }
 }

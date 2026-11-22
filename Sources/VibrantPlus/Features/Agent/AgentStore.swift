@@ -32,6 +32,13 @@ final class AgentStore {
     /// Hooks are in settings.json but point at another copy of the app (moved, or a release copy).
     private(set) var hooksOutdated = false
     var lastError: String?
+    /// Sessions whose permission requests are allowed without asking, until the app quits.
+    /// A request that carries a warning (delete, sudo, piped download) is always asked.
+    private(set) var autoAllowed: Set<String> = []
+
+    func setAutoAllow(_ on: Bool, for sessionID: String) {
+        if on { autoAllowed.insert(sessionID) } else { autoAllowed.remove(sessionID) }
+    }
 
     /// Called when something needs the person (opens the island).
     @ObservationIgnored var onAttention: (() -> Void)?
@@ -95,6 +102,12 @@ final class AgentStore {
             return
         }
 
+        if request.wait && event.needsAnswer && !event.isQuestion && autoAllowed.contains(event.sessionID)
+            && PermissionDetail(tool: event.toolName ?? "", input: event.toolInput).warnings.isEmpty {
+            respond(HookReply(action: .allow))
+            AgentReducer.resolved(event.sessionID, in: &sessions)
+            return
+        }
         if request.wait && event.needsAnswer {
             let timeout: TimeInterval = event.isQuestion ? 105 : 50
             pending.append(Pending(id: request.id, event: event, received: .now,

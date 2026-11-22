@@ -1,0 +1,128 @@
+// SPDX-FileCopyrightText: 2026 ARJO LAB
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+import AppKit
+import SwiftUI
+import VibrantPlusKit
+
+/// Befehle: shell commands the person saved. Each runs only when its button is pressed, never by itself,
+/// with a 60 second limit; the island shows the exit state, the time and the last line of output.
+struct CommandsTile: View {
+    private var prefs = Prefs.shared
+    @State private var draft = ""
+    @State private var running: String?
+    @State private var result: (command: String, ok: Bool, seconds: Double, line: String)?
+
+    var body: some View {
+        IslandCard(width: Metrics.wideTileWidth - 64) {
+            VStack(alignment: .leading, spacing: Space.xs) {
+                CardHeader(title: "Befehle", symbol: "terminal")
+                if prefs.savedCommands.isEmpty {
+                    Text("Eigene Befehle speichern und mit einem Knopf ausführen.")
+                        .font(TypeStyle.islandCaption).foregroundStyle(IslandColor.secondaryText)
+                } else {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: Space.xs) {
+                            ForEach(prefs.savedCommands, id: \.self) { cmd in
+                                IslandPillButton(title: running == cmd ? "läuft…" : cmd) { run(cmd) }
+                                    .disabled(running != nil)
+                                    .contextMenu { Button("Entfernen") { prefs.savedCommands.removeAll { $0 == cmd } } }
+                                    .help(cmd)
+                            }
+                        }
+                    }
+                }
+                if let r = result {
+                    HStack(spacing: Space.xs) {
+                        Image(systemName: r.ok ? "checkmark.circle.fill" : "xmark.circle.fill")
+                            .foregroundStyle(r.ok ? IslandColor.accentText : IslandColor.warm)
+                        Text(String(format: "%.1f s", r.seconds)).font(TypeStyle.islandCaption.monospacedDigit())
+                        Text(r.line).font(TypeStyle.islandCaption).lineLimit(1).foregroundStyle(IslandColor.secondaryText)
+                    }
+                }
+                Spacer(minLength: 0)
+                HStack(spacing: Space.xs) {
+                    TextField("Befehl, z. B. git status -sb", text: $draft)
+                        .textFieldStyle(.plain).font(TypeStyle.islandCaption)
+                        .padding(.horizontal, Space.sm).padding(.vertical, 3)
+                        .background(IslandColor.field, in: RoundedRectangle(cornerRadius: Radius.chip))
+                        .onSubmit(save)
+                    IslandPillButton(title: "Sichern", action: save)
+                        .disabled(draft.trimmingCharacters(in: .whitespaces).isEmpty || prefs.savedCommands.count >= 4)
+                }
+            }
+        }
+    }
+
+    private func save() {
+        let c = draft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !c.isEmpty, prefs.savedCommands.count < 4, !prefs.savedCommands.contains(c) else { return }
+        prefs.savedCommands.append(c)
+        draft = ""
+    }
+
+    private func run(_ command: String) {
+        running = command
+        let start = Date()
+        Task.detached(priority: .userInitiated) {
+            let r = Run.program("/bin/zsh", ["-lc", command + " 2>&1"], timeout: 60)
+            let line = r.output.split(whereSeparator: \.isNewline).last.map(String.init) ?? (r.status == -2 ? "Zeitlimit 60 s" : "")
+            await MainActor.run {
+                result = (command, r.status == 0, Date().timeIntervalSince(start), line)
+                running = nil
+            }
+        }
+    }
+}
+
+/// Browser-Tab: reads the front tab of Chrome or Safari once, when asked (macOS asks for the permission then).
+struct BrowserTabTile: View {
+    @State private var tab: (title: String, url: String)?
+    @State private var note = "Zeigt den vorderen Tab von Chrome oder Safari."
+
+    var body: some View {
+        IslandCard(width: Metrics.wideTileWidth - 64) {
+            VStack(alignment: .leading, spacing: Space.xs) {
+                HStack {
+                    CardHeader(title: "Browser-Tab", symbol: "safari")
+                    Spacer()
+                    IslandPillButton(title: "Lesen", kind: .primary, action: read)
+                }
+                if let tab {
+                    Text(tab.title).font(TypeStyle.islandBody.weight(.medium)).lineLimit(2)
+                    Text(tab.url).font(TypeStyle.islandCaption).foregroundStyle(IslandColor.secondaryText).lineLimit(1)
+                    Spacer(minLength: 0)
+                    HStack(spacing: Space.xs) {
+                        IslandPillButton(title: "Link kopieren") {
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(tab.url, forType: .string)
+                        }
+                        IslandPillButton(title: "Link bereinigt") {
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(CleanLink.clean(tab.url) ?? tab.url, forType: .string)
+                        }
+                    }
+                } else {
+                    Text(note).font(TypeStyle.islandCaption).foregroundStyle(IslandColor.secondaryText)
+                    Spacer(minLength: 0)
+                }
+            }
+        }
+    }
+
+    private func read() {
+        let scripts = [("Google Chrome", "tell application \"Google Chrome\" to return (title of active tab of front window) & linefeed & (URL of active tab of front window)"),
+                       ("Safari", "tell application \"Safari\" to return (name of front document) & linefeed & (URL of front document)")]
+        let running = NSWorkspace.shared.runningApplications.compactMap(\.localizedName)
+        for (name, source) in scripts where running.contains(name) {
+            var error: NSDictionary?
+            if let out = NSAppleScript(source: source)?.executeAndReturnError(&error).stringValue {
+                let parts = out.components(separatedBy: "\n")
+                if parts.count >= 2 { tab = (parts[0], parts[1]); return }
+            }
+            if error != nil { note = "Erlaube die Automation für \(name) in den Systemeinstellungen."; tab = nil; return }
+        }
+        note = "Kein geöffneter Chrome- oder Safari-Tab gefunden."
+        tab = nil
+    }
+}
