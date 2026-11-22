@@ -18,7 +18,7 @@
 <key>NSHighResolutionCapable</key><true/>
 <key>NSPrincipalClass</key><string>NSApplication</string>
 <key>NSHumanReadableCopyright</key><string>© 2026 ARJO LAB</string>
-<key>NSAppleEventsUsageDescription</key><string>Vibrant+ steuert Musik und Spotify für die Insel, schaltet über System Events den Dunkelmodus und leert auf deinen Wunsch über den Finder den Papierkorb und legt auf Wunsch Besprechungen in Notizen ab.</string>
+<key>NSAppleEventsUsageDescription</key><string>Vibrant+ steuert Musik und Spotify für die Insel, schaltet über System Events den Dunkelmodus und leert auf deinen Wunsch über den Finder den Papierkorb und legt auf Wunsch Besprechungen in Notizen ab, liest auf Knopfdruck den vorderen Tab von Chrome oder Safari und sendet auf Knopfdruck eine Nachricht über Nachrichten.</string>
 <key>NSCalendarsFullAccessUsageDescription</key><string>Vibrant+ zeigt deinen nächsten Termin und die Termine von heute in der Insel. Nur lesen, nichts verlässt deinen Mac.</string>
 <key>NSRemindersFullAccessUsageDescription</key><string>Vibrant+ zeigt fällige Erinnerungen in der Insel und hakt sie auf deinen Wunsch ab. Nichts verlässt deinen Mac.</string>
 <key>NSDownloadsFolderUsageDescription</key><string>Vibrant+ speichert Bilder, Videos und Musik, die du per Link lädst, in deinem Download-Ordner.</string>

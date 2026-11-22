@@ -86,6 +86,7 @@ struct BrowserTabTile: View {
                 HStack {
                     CardHeader(title: "Browser-Tab", symbol: "safari")
                     Spacer()
+                    IslandIconButton(symbol: "playpause.fill", label: "Wiedergabe oder Pause", size: 24) { MediaKey.playPause() }
                     IslandPillButton(title: "Lesen", kind: .primary, action: read)
                 }
                 if let tab {
@@ -124,5 +125,67 @@ struct BrowserTabTile: View {
         }
         note = "Kein geöffneter Chrome- oder Safari-Tab gefunden."
         tab = nil
+    }
+}
+
+/// The system play/pause key: pauses or resumes whatever plays, including a video in a browser tab.
+enum MediaKey {
+    @MainActor static func playPause() {
+        guard Permission.accessibilityTrusted else {
+            IslandModel.shared.show(Toast(symbol: "exclamationmark.triangle", text: "Bedienungshilfen erlauben, dann Wiedergabe steuern", warm: true))
+            return
+        }
+        for down in [true, false] {
+            let flags = down ? 0xA00 : 0xB00
+            let data1 = (16 << 16) | flags   // NX_KEYTYPE_PLAY
+            NSEvent.otherEvent(with: .systemDefined, location: .zero, modifierFlags: NSEvent.ModifierFlags(rawValue: UInt(flags)),
+                               timestamp: 0, windowNumber: 0, context: nil, subtype: 8, data1: data1, data2: -1)?
+                .cgEvent?.post(tap: .cghidEventTap)
+        }
+    }
+}
+
+/// Nachricht: sends one iMessage or SMS through the Messages app. Nothing is read; the text goes only on the button.
+struct MessageTile: View {
+    @State private var to = ""
+    @State private var text = ""
+    @State private var note = "Empfänger und Text, dann «Senden»."
+
+    var body: some View {
+        IslandCard(width: Metrics.wideTileWidth - 64) {
+            VStack(alignment: .leading, spacing: Space.xs) {
+                CardHeader(title: "Nachricht", symbol: "message")
+                field("Nummer oder Apple-ID", $to)
+                field("Text", $text)
+                HStack {
+                    Text(note).font(TypeStyle.islandCaption).foregroundStyle(IslandColor.secondaryText).lineLimit(1)
+                    Spacer()
+                    IslandPillButton(title: "Senden", kind: .primary, action: send)
+                        .disabled(to.trimmingCharacters(in: .whitespaces).isEmpty || text.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+            }
+        }
+    }
+
+    private func field(_ title: String, _ value: Binding<String>) -> some View {
+        TextField(title, text: value)
+            .textFieldStyle(.plain).font(TypeStyle.islandCaption)
+            .padding(.horizontal, Space.sm).padding(.vertical, 3)
+            .background(IslandColor.field, in: RoundedRectangle(cornerRadius: Radius.chip))
+    }
+
+    private func send() {
+        // Quotes and backslashes are escaped so the text cannot end the AppleScript string.
+        func esc(_ s: String) -> String { s.replacingOccurrences(of: "\\", with: "\\\\").replacingOccurrences(of: "\"", with: "\\\"") }
+        let source = """
+        tell application "Messages"
+            set theService to 1st account whose service type = iMessage
+            set theBuddy to participant "\(esc(to.trimmingCharacters(in: .whitespaces)))" of theService
+            send "\(esc(text))" to theBuddy
+        end tell
+        """
+        var error: NSDictionary?
+        NSAppleScript(source: source)?.executeAndReturnError(&error)
+        if error == nil { note = "Gesendet."; text = "" } else { note = "Senden fehlgeschlagen: Automation für Nachrichten erlauben." }
     }
 }

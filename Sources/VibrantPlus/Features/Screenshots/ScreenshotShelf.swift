@@ -15,6 +15,8 @@ final class ScreenshotShelf {
     private(set) var thumbnail: NSImage?
     /// True when Vibrant+ took the picture itself and already put it in the clipboard.
     private(set) var copied = false
+    /// Set when the picture is a file that arrived by AirDrop instead of a screenshot.
+    private(set) var arrivedByAirDrop = false
     @ObservationIgnored private var query: NSMetadataQuery?
     @ObservationIgnored private var observer: NSObjectProtocol?
     @ObservationIgnored private var started = Date.now
@@ -32,9 +34,11 @@ final class ScreenshotShelf {
         }
         q.start()
         query = q
+        AirDropArrival.shared.start()
     }
 
     func stop() {
+        AirDropArrival.shared.stop()
         query?.stop()
         query = nil
         if let observer { NotificationCenter.default.removeObserver(observer) }
@@ -58,7 +62,8 @@ final class ScreenshotShelf {
     }
 
     /// Also used by the self-test.
-    func show(_ url: URL, copied: Bool = false) {
+    func show(_ url: URL, copied: Bool = false, airDrop: Bool = false) {
+        arrivedByAirDrop = airDrop
         seen.insert(url.path)   // Spotlight reports pictures Vibrant+ took, too: show them once
         self.copied = copied
         latest = url
@@ -72,6 +77,8 @@ final class ScreenshotShelf {
     /// The card folds away by itself after a while, unless the mouse rests on the island.
     private func armAutoHide() {
         hideTask?.cancel()
+        // «Screenshots bleiben hängen»: the card stays until the person closes it.
+        guard !Prefs.shared.screenshotsStay else { return }
         hideTask = Task {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(10))
@@ -89,6 +96,7 @@ final class ScreenshotShelf {
         latest = nil
         thumbnail = nil
         copied = false
+        arrivedByAirDrop = false
         // Fold the island away only when this card was the last reason for it: a request that is
         // still waiting keeps it open.
         IslandController.shared.releaseStickyIfIdle()
@@ -135,6 +143,9 @@ final class ScreenshotShelf {
 
 struct ScreenshotCard: View {
     var shelf = ScreenshotShelf.shared
+    /// A received photo settles in like a Polaroid: slightly tilted, dropped from above, then straight.
+    @State private var landed = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         HStack(spacing: Space.md) {
@@ -148,8 +159,12 @@ struct ScreenshotCard: View {
             .frame(width: 160, height: 100)
             .background(IslandColor.field, in: RoundedRectangle(cornerRadius: Radius.control))
             .clipShape(RoundedRectangle(cornerRadius: Radius.control))
+            .rotationEffect(.degrees(shelf.arrivedByAirDrop && !landed && !reduceMotion ? -7 : 0))
+            .offset(y: shelf.arrivedByAirDrop && !landed && !reduceMotion ? -28 : 0)
+            .opacity(shelf.arrivedByAirDrop && !landed && !reduceMotion ? 0 : 1)
+            .onAppear { withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) { landed = true } }
             VStack(alignment: .leading, spacing: Space.sm) {
-                Text(shelf.copied ? "Bildschirmfoto gesichert und kopiert" : "Neues Bildschirmfoto").font(TypeStyle.islandTitle)
+                Text(shelf.arrivedByAirDrop ? "Per AirDrop erhalten" : shelf.copied ? "Bildschirmfoto gesichert und kopiert" : "Neues Bildschirmfoto").font(TypeStyle.islandTitle)
                 Text(shelf.latest?.lastPathComponent ?? "").font(TypeStyle.islandCaption)
                     .foregroundStyle(IslandColor.secondaryText).lineLimit(1)
                 HStack(spacing: Space.xs) {

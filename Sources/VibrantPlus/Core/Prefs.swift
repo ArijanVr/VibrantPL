@@ -163,7 +163,7 @@ enum TileCategory: String, CaseIterable, Identifiable {
 enum TileKind: String, CaseIterable, Identifiable, Codable {
     case nowPlaying, agent, nextEvent, weather, clock, system, todo, timer, shelf, clipboard, recentApps, controls, shortcuts
     case quickNote, converter, colorPicker, mirror, usage, reminders
-    case quitApps, meeting, teleprompter, commands, browserTab
+    case quitApps, meeting, teleprompter, commands, browserTab, message
 
     var id: String { rawValue }
 
@@ -193,6 +193,7 @@ enum TileKind: String, CaseIterable, Identifiable, Codable {
         case .teleprompter: "Teleprompter"
         case .commands: "Befehle"
         case .browserTab: "Browser-Tab"
+        case .message: "Nachricht"
         }
     }
 
@@ -222,6 +223,7 @@ enum TileKind: String, CaseIterable, Identifiable, Codable {
         case .teleprompter: "text.alignleft"
         case .commands: "terminal"
         case .browserTab: "safari"
+        case .message: "message"
         }
     }
 
@@ -231,12 +233,12 @@ enum TileKind: String, CaseIterable, Identifiable, Codable {
         case .nowPlaying, .nextEvent, .weather, .todo, .reminders, .clock: .start
         case .system, .recentApps, .controls, .shortcuts, .clipboard, .shelf, .quitApps: .mac
         case .agent, .usage: .ai
-        case .timer, .quickNote, .converter, .colorPicker, .mirror, .meeting, .teleprompter, .commands, .browserTab: .tools
+        case .timer, .quickNote, .converter, .colorPicker, .mirror, .meeting, .teleprompter, .commands, .browserTab, .message: .tools
         }
     }
 
     static let defaultOrder: [TileKind] = [.nowPlaying, .agent, .nextEvent, .weather, .todo, .clock, .system, .timer, .shelf, .clipboard, .recentApps, .controls, .shortcuts,
-                                           .quickNote, .converter, .colorPicker, .mirror, .usage, .reminders, .quitApps, .meeting, .teleprompter, .commands, .browserTab]
+                                           .quickNote, .converter, .colorPicker, .mirror, .usage, .reminders, .quitApps, .meeting, .teleprompter, .commands, .browserTab, .message]
     /// Tiles that arrived in 3.3: switched on once for people who set up an earlier version.
     static let added33: [TileKind] = [.quickNote, .converter, .colorPicker, .mirror]
     /// Tiles that arrived in 3.5: switched on once, like 3.3.
@@ -246,6 +248,7 @@ enum TileKind: String, CaseIterable, Identifiable, Codable {
     /// Teleprompter arrived after 1.0: switched on once, like 3.3.
     static let added11: [TileKind] = [.teleprompter]
     static let added12: [TileKind] = [.commands, .browserTab]
+    static let added13: [TileKind] = [.message]
     /// Cards that are 312 pt wide anyway: «Breit» changes nothing for them.
     static let alwaysWide: Set<TileKind> = [.nowPlaying, .agent, .controls, .usage]
     var canWiden: Bool { !Self.alwaysWide.contains(self) }
@@ -333,6 +336,10 @@ final class Prefs {
     /// The outline lights up on copy, paste, cut and undo (needs the keyboard permission).
     var shortcutEcho: Bool { didSet { d.set(shortcutEcho, forKey: "island.shortcutEcho") } }
     /// The outline lights up when the charger is plugged in.
+    /// A screenshot card stays on the island until it is closed (no 10 s auto-hide).
+    var screenshotsStay: Bool { didSet { d.set(screenshotsStay, forKey: "screenshots.stay") } }
+    /// Files that arrive by AirDrop show on the island.
+    var airDropArrival: Bool { didSet { d.set(airDropArrival, forKey: "airdrop.arrival") } }
     var chargeGlow: Bool { didSet { d.set(chargeGlow, forKey: "island.chargeGlow") } }
     /// Pulsi reads notices with the system voice (Siri / Spoken Content). Off: toasts only.
     var mascotSpeaks: Bool { didSet { d.set(mascotSpeaks, forKey: "island.mascotSpeaks") } }
@@ -444,6 +451,11 @@ final class Prefs {
             d.set(true, forKey: "tiles.added12Migrated")
             d.set(tiles.map(\.rawValue), forKey: "tiles.on")
         }
+        if !d.bool(forKey: "tiles.added13Migrated") {
+            tiles.formUnion(TileKind.added13)
+            d.set(true, forKey: "tiles.added13Migrated")
+            d.set(tiles.map(\.rawValue), forKey: "tiles.on")
+        }
         // Apps beenden and Besprechung arrived in 3.8: on once, so they are found.
         if !d.bool(forKey: "tiles.added38Migrated") {
             tiles.formUnion(TileKind.added38)
@@ -456,6 +468,8 @@ final class Prefs {
         islandGlow = d.object(forKey: "island.glow") as? Bool ?? true
         glowStyle = GlowStyle(rawValue: d.string(forKey: "island.glowStyle") ?? "") ?? .wave
         shortcutEcho = d.object(forKey: "island.shortcutEcho") as? Bool ?? false
+        screenshotsStay = d.bool(forKey: "screenshots.stay")
+        airDropArrival = d.object(forKey: "airdrop.arrival") as? Bool ?? true
         chargeGlow = d.object(forKey: "island.chargeGlow") as? Bool ?? true
         mascotSpeaks = d.bool(forKey: "island.mascotSpeaks")
         mascotPlaySounds = d.object(forKey: "island.mascotSounds") as? Bool ?? true

@@ -146,6 +146,7 @@ struct TileStrip: View {
         case .teleprompter: TeleprompterTile()
         case .commands: CommandsTile()
         case .browserTab: BrowserTabTile()
+        case .message: MessageTile()
         case .converter: ConverterTile()
         case .colorPicker: ColorPickerTile()
         case .mirror: MirrorTile()

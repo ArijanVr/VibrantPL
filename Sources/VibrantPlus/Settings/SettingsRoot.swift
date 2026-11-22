@@ -618,6 +618,12 @@ struct ScreenshotSettings: View {
     @State private var resetDone = false
 
     var body: some View {
+        Section("Karte in der Insel") {
+            Toggle("Karte bleibt hängen, bis ich sie schliesse", isOn: $prefs.screenshotsStay)
+            Toggle("Per AirDrop erhaltene Dateien in der Insel zeigen", isOn: $prefs.airDropArrival)
+            Text("Erkannt werden neue Dateien im Ordner Downloads, die macOS als AirDrop-Empfang markiert hat.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
         Section {
             ForEach(CaptureMode.allCases, id: \.self) { mode in
                 LabeledContent {
