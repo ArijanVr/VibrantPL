@@ -16,6 +16,8 @@ public struct HookEvent: Codable, Sendable, Equatable {
     public var prompt: String?
     public var message: String?
     public var permissionSuggestions: JSONValue?
+    /// Which tool sent the event: nil for Claude Code, "codex" for Codex.
+    public var agent: String?
 
     enum CodingKeys: String, CodingKey {
         case sessionID = "session_id"
@@ -28,11 +30,12 @@ public struct HookEvent: Codable, Sendable, Equatable {
         case prompt
         case message
         case permissionSuggestions = "permission_suggestions"
+        case agent
     }
 
     public init(sessionID: String, eventName: String, cwd: String? = nil, transcriptPath: String? = nil, toolName: String? = nil,
                 toolInput: JSONValue? = nil, toolResponse: JSONValue? = nil, prompt: String? = nil,
-                message: String? = nil, permissionSuggestions: JSONValue? = nil) {
+                message: String? = nil, permissionSuggestions: JSONValue? = nil, agent: String? = nil) {
         self.sessionID = sessionID
         self.eventName = eventName
         self.cwd = cwd
@@ -43,6 +46,7 @@ public struct HookEvent: Codable, Sendable, Equatable {
         self.prompt = prompt
         self.message = message
         self.permissionSuggestions = permissionSuggestions
+        self.agent = agent
     }
 
     /// True when the hook should wait for an answer from the person:
@@ -51,6 +55,11 @@ public struct HookEvent: Codable, Sendable, Equatable {
         if eventName == "PermissionRequest" { return true }
         return isQuestion
     }
+
+    public var isCodex: Bool { agent == "codex" }
+
+    /// "Claude" or "Codex", for the words on the island.
+    public var agentName: String { isCodex ? "Codex" : "Claude" }
 
     public var isQuestion: Bool {
         eventName == "PreToolUse" && toolName == "AskUserQuestion"

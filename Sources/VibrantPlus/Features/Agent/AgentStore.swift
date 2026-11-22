@@ -74,6 +74,7 @@ final class AgentStore {
         server = serverRunning ? s : nil
         if !serverRunning { lastError = "Der Agent-Socket konnte nicht geöffnet werden." }
         refreshHookStatus()
+        refreshCodexStatus()
         expiryTimer = Timer.repeating(every: 2) { [weak self] _ in
             MainActor.assumeIsolated { self?.expirePending() }
         }
@@ -95,9 +96,10 @@ final class AgentStore {
         AgentReducer.apply(event, to: &sessions)
 
         if event.eventName == "UserPromptSubmit" {
-            let context = filesForClaude.isEmpty ? nil :
+            // The dropped files belong to Claude Code's next prompt, never to Codex's.
+            let context = event.isCodex || filesForClaude.isEmpty ? nil :
                 "Vom Benutzer für diese Nachricht bereitgelegte Dateien:\n" + filesForClaude.map(\.path).joined(separator: "\n")
-            filesForClaude = []
+            if !event.isCodex { filesForClaude = [] }
             respond(HookReply(action: .none, context: context))
             return
         }
@@ -116,8 +118,8 @@ final class AgentStore {
             onAttention?()
             let project = sessions[event.sessionID]?.projectName ?? "Claude Code"
             let line = event.isQuestion
-                         ? "Claude fragt in \(project). Antworten in der Insel."
-                         : "Claude möchte in \(project): \(PermissionDetail(tool: event.toolName ?? "", input: event.toolInput).title). Befehl+Return erlaubt, Escape lehnt ab."
+                         ? "\(event.agentName) fragt in \(project). Antworten in der Insel."
+                         : "\(event.agentName) möchte in \(project): \(PermissionDetail(tool: event.toolName ?? "", input: event.toolInput).title). Befehl+Return erlaubt, Escape lehnt ab."
             Announce.say(line, urgent: true)
             PulsiVoice.shared.say(line)
             return
@@ -217,6 +219,40 @@ final class AgentStore {
         let settings = (try? ClaudeHooks.read(Paths.claudeSettings)) ?? [:]
         hooksInstalled = ClaudeHooks.isInstalled(in: settings)
         hooksOutdated = hooksInstalled && !ClaudeHooks.pointsAt(Paths.executable, in: settings)
+    }
+
+    // MARK: Codex
+
+    private(set) var codexInstalled = false
+    private(set) var codexOutdated = false
+    var codexError: String?
+
+    func refreshCodexStatus() {
+        let file = (try? ClaudeHooks.read(Paths.codexHooks)) ?? [:]
+        codexInstalled = CodexHooks.isInstalled(in: file)
+        codexOutdated = codexInstalled && !CodexHooks.pointsAt(Paths.executable, in: file)
+    }
+
+    func installCodexHooks() {
+        do {
+            let current = try ClaudeHooks.read(Paths.codexHooks)
+            try ClaudeHooks.write(try CodexHooks.install(into: current, executable: Paths.executable), to: Paths.codexHooks)
+            codexError = nil
+        } catch {
+            codexError = "hooks.json hat eine unerwartete Form und wurde nicht verändert."
+        }
+        refreshCodexStatus()
+    }
+
+    func removeCodexHooks() {
+        do {
+            let current = try ClaudeHooks.read(Paths.codexHooks)
+            try ClaudeHooks.write(try CodexHooks.remove(from: current), to: Paths.codexHooks)
+            codexError = nil
+        } catch {
+            codexError = "hooks.json hat eine unerwartete Form und wurde nicht verändert."
+        }
+        refreshCodexStatus()
     }
 
     func installHooks() {

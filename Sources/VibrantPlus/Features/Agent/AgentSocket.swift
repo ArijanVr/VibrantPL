@@ -80,8 +80,15 @@ nonisolated enum UnixSocket {
 nonisolated enum HookCLI {
     static func run() -> Int32 {
         let input = FileHandle.standardInput.readDataToEndOfFile()
-        guard let event = try? JSONDecoder().decode(HookEvent.self, from: input) else { return 0 }
-        let wait = event.needsAnswer || event.eventName == "UserPromptSubmit"
+        guard var event = try? JSONDecoder().decode(HookEvent.self, from: input) else { return 0 }
+        let codex = CommandLine.arguments.contains("--codex")
+        if codex {
+            // Codex sessions get their own ids and name, so they never mix with Claude Code's.
+            event.agent = "codex"
+            event.sessionID = "codex:" + event.sessionID
+        }
+        // Only Claude Code's prompts carry the files dropped on the island.
+        let wait = event.needsAnswer || (event.eventName == "UserPromptSubmit" && !codex)
         let timeout: TimeInterval = event.isQuestion ? 110 : (event.eventName == "PermissionRequest" ? 55 : 2)
         let fd = UnixSocket.connect(Paths.agentSocket.path, timeout: timeout)
         guard fd >= 0 else { return 0 }

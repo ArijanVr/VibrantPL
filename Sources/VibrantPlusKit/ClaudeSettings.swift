@@ -107,7 +107,7 @@ public enum ClaudeHooks {
         if fm.fileExists(atPath: url.path), let current = try? read(url),
            NSDictionary(dictionary: current).isEqual(to: settings) { return }
         try fm.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-        let backup = url.deletingLastPathComponent().appending(path: "settings.json.vibrantplus-backup")
+        let backup = url.deletingLastPathComponent().appending(path: url.lastPathComponent + ".vibrantplus-backup")
         if fm.fileExists(atPath: url.path), !fm.fileExists(atPath: backup.path) {
             try fm.copyItem(at: url, to: backup)
         }

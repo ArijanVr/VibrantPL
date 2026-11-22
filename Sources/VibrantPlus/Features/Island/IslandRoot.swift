@@ -583,7 +583,7 @@ struct AgentRequestCard: View {
             HStack(spacing: Space.sm) {
                 Image(systemName: pending.event.isQuestion ? "questionmark.bubble.fill" : "hand.raised.fill")
                     .foregroundStyle(IslandColor.warm)
-                Text(pending.event.isQuestion ? "Claude fragt" : "Claude möchte")
+                Text(pending.event.isQuestion ? "\(pending.event.agentName) fragt" : "\(pending.event.agentName) möchte")
                     .font(TypeStyle.islandTitle)
                 Text(projectName).font(TypeStyle.islandCaption).foregroundStyle(IslandColor.secondaryText)
                 Spacer()

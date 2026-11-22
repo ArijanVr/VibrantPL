@@ -32,6 +32,14 @@ nonisolated enum Paths {
         return FileManager.default.homeDirectoryForCurrentUser.appending(path: ".claude/settings.json")
     }
 
+    /// Codex's user hook file.
+    static var codexHooks: URL {
+        if let custom = ProcessInfo.processInfo.environment["APP_CODEX_HOOKS"], !custom.isEmpty {
+            return URL(fileURLWithPath: custom)
+        }
+        return FileManager.default.homeDirectoryForCurrentUser.appending(path: ".codex/hooks.json")
+    }
+
     /// The running binary: the hook command points here.
     static var executable: String {
         Bundle.main.executableURL?.path ?? CommandLine.arguments[0]

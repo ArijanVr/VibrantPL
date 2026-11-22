@@ -525,6 +525,27 @@ struct AgentSettings: View {
             Text("Trägt Vibrant+ als Hook in ~/.claude/settings.json ein (eine Sicherung des Originals liegt daneben). Andere Einträge bleiben unverändert. Ist Vibrant+ beendet oder antwortest du nicht rechtzeitig, fragt Claude Code wie gewohnt im Terminal.")
         }
         Section {
+            LabeledContent("Status") {
+                if agent.codexOutdated {
+                    Label("Verbindung veraltet", systemImage: "exclamationmark.triangle.fill").foregroundStyle(Palette.caution)
+                } else {
+                    Label(agent.codexInstalled ? "Verbunden" : "Nicht verbunden",
+                          systemImage: agent.codexInstalled ? "checkmark.circle.fill" : "circle.dashed")
+                        .foregroundStyle(agent.codexInstalled ? Palette.accentText : .secondary)
+                }
+            }
+            HStack {
+                Button(agent.codexInstalled ? "Verbindung erneuern" : "Mit Codex verbinden") { agent.installCodexHooks() }
+                    .buttonStyle(.borderedProminent)
+                if agent.codexInstalled { Button("Trennen") { agent.removeCodexHooks() } }
+            }
+            if let e = agent.codexError { Text(e).foregroundStyle(Palette.danger) }
+        } header: {
+            Text("Codex")
+        } footer: {
+            Text("Trägt Vibrant+ als Hook in ~/.codex/hooks.json ein (eine Sicherung des Originals liegt daneben). Danach öffnest du in Codex einmal /hooks und vertraust den neuen Hook; vorher läuft er nicht. Freigaben von Codex erscheinen dann in der Insel. Antwortest du nicht rechtzeitig, fragt Codex wie gewohnt. «Immer erlauben» gibt es für Codex nicht.")
+        }
+        Section {
             ForEach(AIProvider.allCases, id: \.self) { provider in
                 let installed = Self.installed(provider)
                 let hasData = usage.present.contains(provider)
