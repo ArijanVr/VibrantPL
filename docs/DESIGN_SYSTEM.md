@@ -1,32 +1,36 @@
 # Vibrant+ Designsystem
 
-Quelle: Brandguide Vibrant+ V1.0 (14.11.2026, Kapitel 04 bis 12), Grundlage App-Guide Seriös V1.1 von ARJO LAB. Tokens im Code: `Sources/VibrantPlus/DesignSystem/Tokens.swift`, Akzente in `UI/Theme.swift`, Wortmarke in `DesignSystem/Wordmark.swift`.
+Leitsatz: «Porzellan trägt, Tinte spricht, Puls zeigt.» Tokens im Code: `Sources/VibrantPlus/DesignSystem/Tokens.swift`, Akzente in `UI/Theme.swift`, Wortmarke in `DesignSystem/Wordmark.swift`.
 
-Leitsatz: «Grau trägt. Puls zeigt.» Grau für Flächen und Text, ein einziger Akzent (Puls) für Ereignisse, Fokus und Status. Pastell gehört nur ins Icon.
+Porzellan ist der Haupthintergrund. Tinte trägt den Text. Puls (#C2306A, dunkel #F07AA8) erscheint nur bei Aktivem: Auswahl, Fokus, Primärknopf, Statuspunkt. Kein Pastell, kein Neon, kein bunter Verlauf.
 
 ## Farben
 
-| Token | Wert | Verwendung |
-|---|---|---|
-| `Brand.pulsLight` | #EC6FA2 | Puls als Text und Symbol auf Graphit (5,1 : 1) |
-| `Brand.pulsGlass` | #FFB8D5 | Puls als Text und Symbol auf Rauchglas (mindestens 4,6 : 1) |
-| `Brand.pulsInk` | #C9326F | Puls-Fläche, die Text trägt (`accentFill`, 4,95 : 1) |
-| `Brand.puls` | #D63C7A | Akzent: Ereignis-Punkt, Fokus, Status, Titel-Punkt. Gleich in Hell und Dunkel. Nie Fliesstext. |
-| `Brand.offWhite` | #FDFDFC | Hintergrund hell, Karte hell, Text dunkel |
-| `Brand.grouped` | #F0F0EE | Gruppenfläche, Seitenleiste hell |
-| `Brand.hairline` | #D9DAD8 | Trennlinie hell, Hover hell |
-| `Brand.black` | #090A0A | Insel (immer), Hintergrund dunkel, Text hell |
-| `Brand.graphite` | #2A2C2C | Karte dunkel, Ebenen |
-| `Brand.grey` | #6B6E6D | Sekundärtext hell, Rand Bedienelement |
-| `Brand.lightGrey` | #D9DAD8 | Sekundärtext dunkel |
+Hell, auf Porzellan #F6F5F1. Dunkel, auf Graphitnacht #141414. Text und Status mindestens 4,5 : 1.
 
-Die Insel ist immer Schwarz (`IslandPalette.notch`), in Hell und Dunkel, offen wie geschlossen. Karten darin sind Graphit 55 %; Hover legt einen Schleier darüber (`hoverVeil`), damit Knöpfe auf der Karte sichtbar bleiben.
+| Token | Hell | Dunkel | Verwendung |
+|---|---|---|---|
+| `porzellan` / `graphitNacht` | #F6F5F1 | #141414 | Fenstergrund |
+| `kreide` / `graphit` | #FCFCFA | #1E1E1D | Karten, Popover |
+| `leinen` / `schiefer` | #EDECE7 | #282827 | Gruppen |
+| `naht` / `nahtDunkel` | #DEDCD5 | #3A3A38 | 1-px-Linie |
+| `tinte` / `porzellan` | #1D1D1F | #F6F5F1 | Haupttext (15,4 : 1 / 16,9 : 1) |
+| `stein` / `sand` | #5E5D59 | #B4B2AC | Nebentext |
+| `kiesel` / `kieselDunkel` | #6E6D68 | #8E8C87 | Hinweis (4,75 : 1 / 5,48 : 1) |
+| `puls` | #C2306A | #C2306A | Primärfläche. Weiss darauf 5,35 : 1 |
+| `pulsHell` | | #F07AA8 | Akzenttext dunkel, Insel-Akzent auf Schwarz 7,59 : 1 |
+| `pulsGlass` | | #FFB8D5 | Akzenttext auf Rauchglas |
+| `erfolg` | #1E7F45 | #4FD07F | Verbunden, abgeschlossen |
+| `bernsteinText` / `bernsteinHell` | #9A5B00 | #F5B03E | Warntext. Glow hell #D98218, dunkel #F5B03E |
+| `gefahr` | #C8312C | #FF6B63 | Fehlertext |
+| `hinweis` | #0060C8 | #5EA8FF | Links |
+| `black` | #090A0A | #090A0A | Insel, immer |
 
-Kontrast (WCAG 2.2): Puls auf Off-White 4,31 : 1, Puls auf Schwarz 4,52 : 1 (UI ok, Text ok nur auf Schwarz). Text Schwarz auf Off-White 19,48 : 1.
+Die Insel ist immer Tiefschwarz (`IslandPalette.notch`), in Hell und Dunkel, offen wie geschlossen. `primaryText` ist Porzellan, `accentText` ist `pulsHell`, `accentFill` ist `puls`. Karten darin sind Schiefer. Hover legt einen Schleier darüber (`hoverVeil`), damit Knöpfe auf der Karte sichtbar bleiben.
 
-**Pastell:** Himmel #CFE1F4, Pfirsich #FFD9C8, Rosé #F7D5DD nur im App-Icon und in Werbebildern. Keine Pastellfläche in der Oberfläche.
+Akzent der Fenster: «System» folgt der Mac-Akzentfarbe. Ist sie «Mehrfarbig», erscheint Puls (`ThemeStore.brand`, hell `pulsHell`, Fläche `puls`). Fenster-Status nutzen die Paare oben (`Palette.danger`, `caution`, `success`, `info`).
 
-Akzent der Fenster: «System» folgt der Mac-Akzentfarbe; ist sie «Mehrfarbig», erscheint Puls (`ThemeStore.brand`). Zusätzlich wählbar: Puls und die Systemfarben. Fenster-Status (Fehler, Vorsicht, Diff) bleiben Systemfarben, damit Hell, Dunkel und «Kontrast erhöhen» greifen.
+Seitenleiste und schwebende Flächen nutzen Apples Material (`.regularMaterial`). Inhaltskarten bleiben deckend, kein Glas auf Glas. Die Insel selbst bleibt schwarz, ausser im Stil «Liquid Glass».
 
 **Kontrast erhöhen:** Jede Insel-Palette hat `increasedContrast()` (Nebentext 90 %, Hinweise 78 %, Linien 35 % der Hauptfarbe), live umgeschaltet.
 
@@ -41,14 +45,14 @@ Akzent der Fenster: «System» folgt der Mac-Akzentfarbe; ist sie «Mehrfarbig»
 
 ## Typografie
 
-Die Brand-Schrift ist Geist (Geist Mono für Befehle). Im Code noch SF Pro (System), damit Dynamic Type und Bedienungshilfen greifen. Geist ist nicht eingebunden; Einbinden ist offen (Lizenz SIL OFL 1.1). Insel: Titel 13 semibold, Text 12, Hinweis 11, Label 10 medium, Zahlen 28 semibold rounded, Timer 22, Code 11 monospaced (`islandCode`). Untergrenze 10 pt (`islandMicro`).
+Die Oberfläche nutzt durchgehend SF Pro (`Font.system`), damit Dynamic Type und Bedienungshilfen greifen. Die Wortmarke «Vibrant» bleibt Geist Medium, nur als Vektorpfade (SIL OFL 1.1), nie als gesetzter Text und nie in SF Pro. Insel: Titel 13 semibold, Text 12, Hinweis 11, Label 10 medium, Zahlen 28 semibold rounded, Timer 22, Code 11 monospaced (`islandCode`). Fenster: Large Title 26 bold, Title 20 semibold (`TypeStyle`). Untergrenze 10 pt (`islandMicro`).
 
 ## Raster, Radien, Schatten
 
-- 4-pt-Raster (`Space`: 4, 8, 12, 16, 20, 24, 32; Ränder 20).
-- Radien nach Brandguide 06: Klein 6 (Chip, Badge), Bedienelement 8 (`Radius.control`), Karte 12 (`Radius.card`), Sheet 20. Insel 24 (Notch-Form, `Radius.island`).
-- Ein Schatten: Insel offen, Schwarz 32 %, Radius 20, y 8.
-- Karten tragen eine 1-pt-Lichtkante (`rimLight`, `rimShade`), bei «Kontrast erhöhen» eine gleichmässige Linie.
+- Grundraster 8 pt (`8, 16, 24, 32`). 4 pt nur für Mikroabstände (`Space.xs`). Der Inselrand bleibt 12 pt, weil Kartenradius 12 plus Rand 12 den Inselradius 24 ergibt.
+- Radien: Karte 12 (`Radius.card`), Sheet 16 (`Radius.sheet`), Bedienelement und Chip 8, Insel 24 (`Radius.island`).
+- Schatten: Karte y 1, Blur 3, Schwarz 6 %. Schwebend (offene Insel) y 12, Blur 30, Schwarz 10 %. Im Dunkelmodus der Insel eine 1-pt-Lichtkante in Porzellan mit 8 % (`rimLight`).
+- Karten tragen diese Lichtkante (`rimLight`, `rimShade`), bei «Kontrast erhöhen» eine gleichmässige Linie.
 - Konzentrisch: Kartenradius 12 + Inselrand 12 = Inselradius 24. Kartenkopf immer 20 pt hoch (`Metrics.cardHeaderHeight`).
 
 ## Bewegung
@@ -60,7 +64,7 @@ Quelle der Wahrheit ist `Motion` in `Tokens.swift`. Brandguide 12 nennt Dauern v
 - Kleine Zustände (Hover, Zähler): easeOut 0.14 s. Ein-/Ausblenden: easeInOut 0.24 s.
 - Inhalt der Insel: ein 0.2 s nach 0.04 s, aus 0.08 s. Panels: ein 0.18 s, aus 0.14 s.
 - Knöpfe: gedrückt 0.97 und etwas dunkler, 0.1 s; bei «Bewegung reduzieren» nur dunkler.
-- Alles über `Motion.respecting(_:)`: bei «Bewegung reduzieren» ohne Animation. Keine Daueranimation ausser dem Puls «Claude arbeitet», dem Equalizer und dem Licht, das über die offene Insel fährt (hin und zurück, 2,4 s je Weg, abschaltbar); alle stehen bei «Bewegung reduzieren» still.
+- Alles über `Motion.respecting(_:)`: bei «Bewegung reduzieren» ohne Animation. Keine Daueranimation ausser dem Atem des Lichtsaums, solange Claude arbeitet (2,4 s, Deckkraft 0,20 bis 0,30), und dem Equalizer. Der Saum liegt nur am Aussenrand, nie über Text. Am Ende ein kurzer Puls (etwa 0,45 s) und ein Ausblenden in 0,3 s. Fehler und wartende Anfragen leuchten ruhig in Bernstein bei 0,24, ohne Blinken. «Bewegung reduzieren» hält den Saum statisch bei 0,24.
 
 ## Interaktionszustände
 
@@ -84,10 +88,11 @@ Die Insel öffnet erst, wenn der Zeiger ganz oben am Bildschirmrand im Notch lie
 
 ## Icon und Marke
 
-- App-Icon (`Icon/AppIcon.icon`, Master `Assets/full.svg`, Brandguide 10): Ebenen 1 Hintergrund (Verlauf Himmel #CFE1F4 nach Pfirsich #FFD9C8), 2 Glow (Puls, oben rechts, weich), 3 Glasebene (Schimmer nur auf der Linie), 4 Symbol (Pulslinie Graphite #2A2C2C nach Black #090A0A, Strich 100 px, runde Enden, 80 % Breite), 5 Glanz (oben, bis 38 % Weiss). Vollflächig, ohne Maske, ohne Text. macOS ergänzt Glas, Schatten und Maske. Resources (`Assets.car`, `AppIcon.icns`) entstehen mit `tools/make_icon.sh` (`build.sh` ruft es auf).
-- Menüleiste: `VibrantMark` zeichnet dieselbe Pulslinie als Vorlagenbild.
+- App-Icon A «Porzellan-Puls» (`Icon/AppIcon.icon`, Master `Assets/full.svg` und `full.png`): vollflächig, ohne Aussenmaske und ohne Text, damit macOS Squircle und Schatten setzt (`icon.json`, `glass: false`). Hintergrund #FDFCFA nach #ECEAE4, Glanz oben höchstens 60 % Weiss. Pulslinie `232,540 … 736,540`, Strich 64, rund, Verlauf #3A3A3D nach #141415, Schatten dy 16, Blur 12, 16 % Schwarz. Puls-Punkt bei (806, 540), Radius 44, #C2306A mit Glanz #F48AB4. `docs/media/app-icon.png` ist die maskierte Fassung für README und Releases. `./build.sh` kompiliert `Icon/AppIcon.icon` mit Xcode. `tools/make_icon.sh` schreibt auf einem Mac `Resources/Assets.car` und `Resources/AppIcon.icns`.
+- Menüleiste: `VibrantMark` zeichnet dieselbe Pulslinie als Vorlagenbild. Der rosa Punkt bleibt im Icon, nicht in der Vorlage.
 - Das ARJO-LAB-Logo ist nie das App-Icon. Es erscheint nur in der Absenderzeile.
-- Wortmarke: `Wordmark` zeichnet «Vibrant» in Geist Medium aus `Design/Wortmarke/Vibrant-Plus_Wortmarke_*_v1.svg` (Pfade unverändert) und das «+» in Puls, runde Enden, um -8° gekippt, oben bündig mit der Versalhöhe (Strich 92 / 1000 em). Das «+» ist eine eigene Form und nimmt den Akzent.
+- Wortmarke: `Wordmark` zeichnet «Vibrant» in Geist Medium (Pfade unverändert) und ein freies Kreuz in Puls, runde Enden, um 8° nach links gekippt, oben bündig mit der Versalhöhe (Strich 92 / 1000 em). Hell #C2306A, dunkel #F07AA8. Keine schwarze Notch-Kachel hinter dem Plus. Dateien: `docs/media/logo-wortmarke.svg` (hell), `logo-dunkel.svg`, `logo-symbol.svg`.
+- Pulsi (Porzellan): Fotos in `Resources/Pulsi/` für Willkommen, Leerzustände und Erfolg. Die gezeichnete Figur am Notch bleibt optional. Nie auf Einstellungsformularen, nie als App-Icon.
 - Absenderzeile: «Ein Produkt von ARJO LAB» in Über und Einstellungen.
 
 ## Einstellungen

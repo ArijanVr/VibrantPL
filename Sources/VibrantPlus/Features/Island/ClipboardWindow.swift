@@ -21,8 +21,11 @@ struct ClipboardView: View {
                 .onSubmit { if let first = rows.first { use(first) } }
             Divider()
             if rows.isEmpty {
-                ContentUnavailableView(query.isEmpty ? "Noch nichts kopiert" : "Nichts gefunden", systemImage: "doc.on.clipboard",
-                                       description: Text(query.isEmpty ? "Kopiere etwas, es erscheint hier. Angeheftetes bleibt gespeichert." : "Andere Suchbegriffe probieren."))
+                if query.isEmpty {
+                    PulsiEmpty(title: "Noch nichts kopiert", text: "Kopiere etwas, es erscheint hier. Angeheftetes bleibt gespeichert.")
+                } else {
+                    ContentUnavailableView.search(text: query)
+                }
             } else {
                 List(rows) { item in
                     HStack(spacing: Space.md) {

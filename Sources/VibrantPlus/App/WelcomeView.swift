@@ -17,8 +17,8 @@ struct WelcomeView: View {
         VStack(alignment: .leading, spacing: Space.lg) {
             VStack(alignment: .leading, spacing: Space.sm) {
                 Wordmark.view(height: 36)
-                Text(titles[step]).font(.title2).fontWeight(.semibold)
-                Text("Schritt \(step + 1) von 4").font(.caption).foregroundStyle(.secondary)
+                Text(titles[step]).font(TypeStyle.title)
+                Text("Schritt \(step + 1) von 4").font(TypeStyle.footnote).foregroundStyle(Surface.secondary)
             }
             .padding(.horizontal, Space.xl)
             if step == 1 {
@@ -44,13 +44,17 @@ struct WelcomeView: View {
         .padding(.vertical, Space.xl)
         .padding(.top, Space.lg)
         .frame(width: 560, height: 600)
+        .background(Surface.window)
     }
 
     @ViewBuilder private var content: some View {
         switch step {
         case 0:
             VStack(alignment: .leading, spacing: Space.md) {
-                Text("Dein Mac. Deine Werkzeuge.").font(.headline)
+                PulsiImage(pose: .willkommen, height: 120)
+                    .frame(maxWidth: .infinity)
+                    .clipShape(RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
+                Text("Dein Mac. Deine Werkzeuge.").font(TypeStyle.headline)
                 Text("Alles bleibt aus, bis du es einschaltest. Keine Konten, keine Analyse. Im nächsten Schritt wählst du, was wirklich läuft.")
                 Label("Pulslinie in der Menüleiste, Insel am Notch oder ⌃⌥⌘I.", systemImage: "menubar.rectangle")
                 ForEach(Module.Group.allCases, id: \.self) { group in
@@ -73,8 +77,11 @@ struct WelcomeView: View {
         case 2: EmptyView() // The permission form owns its scrolling.
         default:
             VStack(alignment: .leading, spacing: Space.lg) {
+                PulsiImage(pose: .erfolg, height: 120)
+                    .frame(maxWidth: .infinity)
+                    .clipShape(RoundedRectangle(cornerRadius: Radius.card, style: .continuous))
                 Label("\(prefs.setupSelection.count) Werkzeuge ausgewählt", systemImage: "checkmark.circle")
-                    .font(.headline)
+                    .font(TypeStyle.headline)
                 Text("Du findest deine Werkzeuge in der Menüleiste. Einstellungen › Funktionen bietet Suche, Profile und alle Schalter. Ausgeschaltete Module behalten ihre Einstellungen.")
                 Toggle("Beim Anmelden öffnen", isOn: $launchAtLogin)
                 if let loginError { Text(loginError).foregroundStyle(Palette.danger) }

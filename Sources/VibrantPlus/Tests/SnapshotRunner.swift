@@ -243,7 +243,7 @@ enum SnapshotRunner {
     static func makeSampleImage() -> URL? {
         let url = Paths.dataDirectory.appending(path: "Beispiel.png")
         let image = NSImage(size: NSSize(width: 800, height: 600), flipped: false) { r in
-            NSGradient(starting: NSColor(hex: Brand.graphite), ending: NSColor(hex: Brand.black))?.draw(in: r, angle: -90)
+            NSGradient(starting: NSColor(hex: Brand.schiefer), ending: NSColor(hex: Brand.black))?.draw(in: r, angle: -90)
             return true
         }
         guard let tiff = image.tiffRepresentation, let rep = NSBitmapImageRep(data: tiff),

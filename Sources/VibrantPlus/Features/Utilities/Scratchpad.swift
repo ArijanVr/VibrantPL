@@ -70,7 +70,9 @@ struct ScratchpadView: View {
                     TextEditor(text: Binding(get: { store.current?.text ?? "" }, set: { store.update(text: $0) }))
                         .font(.body)
                 }
-            } else { ContentUnavailableView("Dein Notizblock", systemImage: "note.text", description: Text("Lege deine erste Notiz an.")) }
+            } else {
+                PulsiEmpty(title: "Dein Notizblock", text: "Lege deine erste Notiz an.")
+            }
         }
         .padding(Space.margin).frame(width: 640, height: 480)
         .onDisappear { store.save() }

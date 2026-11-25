@@ -4,8 +4,8 @@
 import SwiftUI
 import VibrantPlusKit
 
-/// The ring: one segment per model, in Puls steps (Grau trägt, Puls zeigt —
-/// die Modelle unterscheiden sich über die Stärke des Puls, nicht über Bunt).
+/// The ring: one segment per model, in Puls steps (Porzellan trägt, Puls zeigt.
+/// Models differ by how strong the Puls is, not by extra colors).
 /// In the middle, the share of the leading model.
 struct UsageRing: View {
     var report: UsageReport

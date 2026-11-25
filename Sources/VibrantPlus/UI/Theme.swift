@@ -49,7 +49,7 @@ struct Theme: Identifiable, Hashable {
 
     static let all: [Theme] = [
         Theme(id: "system", name: "System", shades: nil),
-        Theme(id: "puls", name: "Puls", shades: .init(light: 0xD63C7A, base: 0xD63C7A, deep: 0xC9326F)),
+        Theme(id: "puls", name: "Puls", shades: .init(light: Brand.pulsHell, base: Brand.puls, deep: Brand.puls)),
         Theme(id: "blue", name: "Blau", shades: .init(light: 0x7CC0FF, base: 0x0A84FF, deep: 0x0064D2)),
         Theme(id: "indigo", name: "Indigo", shades: .init(light: 0xA5ADFF, base: 0x5E6AD2, deep: 0x4650B8)),
         Theme(id: "violet", name: "Violett", shades: .init(light: 0xB9A6FF, base: 0x7B5CFF, deep: 0x6342E6)),
@@ -77,8 +77,8 @@ final class ThemeStore {
     /// only while the Mac's accent is Multicolor (System Settings >
     /// Appearance). Any other Mac accent wins. Example:
     /// Theme(id: "brand", name: "Brand", shades: .init(light: 0x8EEBC4, base: 0x2BC48A, deep: 0x0F7A55), darkText: true)
-    /// Vibrant+: Puls (#D63C7A), the one accent of the Brandguide V1.0. Same color in light and dark.
-    static let brand: Theme? = Theme(id: "brand", name: "Puls", shades: .init(light: 0xD63C7A, base: 0xD63C7A, deep: 0xC9326F))
+    /// Vibrant+: Puls. Light shade is the dark-mode accent text, deep shade is the fill and the light-mode text.
+    static let brand: Theme? = Theme(id: "brand", name: "Puls", shades: .init(light: Brand.pulsHell, base: Brand.puls, deep: Brand.puls))
 
     var themeID: String {
         didSet { UserDefaults.standard.set(themeID, forKey: "appearance.accent") }
@@ -126,12 +126,14 @@ enum Palette {
     static var accentText: Color { ThemeStore.shared.theme.accentText }
     static var onAccent: Color { ThemeStore.shared.theme.onAccent }
 
-    // Status in windows (Settings, Claude panel). System colors, so they follow light, dark
-    // and Increase contrast; the island has its own in IslandPalette.
+    // Status in windows (Settings, Claude panel). Brand pairs, each at least 4.5:1 on Porzellan and Graphitnacht.
+    // The island has its own in IslandPalette.
     /// Errors and failed steps.
-    static let danger = Color(nsColor: .systemRed)
+    static let danger = Surface.danger
     /// Something needs a look but nothing is broken.
-    static let caution = Color(nsColor: .systemOrange)
+    static let caution = Surface.warning
+    static let success = Surface.success
+    static let info = Surface.info
     /// Diff: removed and added lines (a tint behind text, not text color).
     static let diffRemoved = Color(nsColor: .systemRed).opacity(0.15)
     static let diffAdded = Color(nsColor: .systemGreen).opacity(0.15)
@@ -141,6 +143,11 @@ extension View {
     /// Applies the chosen accent to everything below. Put it on every scene's root.
     func themed() -> some View {
         modifier(Themed())
+    }
+
+    /// Porzellan in light mode, Graphitnacht in dark mode. Cards stay opaque on top of this.
+    func brandWindow() -> some View {
+        background(Surface.window)
     }
 }
 
@@ -183,6 +190,12 @@ extension Color {
 }
 
 extension NSColor {
+    /// The window ground: Porzellan in light mode, Graphitnacht in dark mode.
+    static let brandWindow = NSColor(name: nil) { appearance in
+        let dark = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        return NSColor(hex: dark ? Brand.graphitNacht : Brand.porzellan)
+    }
+
     convenience init(hex: UInt32) {
         self.init(srgbRed: CGFloat((hex >> 16) & 0xFF) / 255,
                   green: CGFloat((hex >> 8) & 0xFF) / 255,

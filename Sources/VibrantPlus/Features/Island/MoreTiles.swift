@@ -267,7 +267,7 @@ final class ColorSamples {
     private init() { recent = UserDefaults.standard.stringArray(forKey: "colors.recent") ?? [] }
 
     /// For snapshots.
-    func loadSample() { recent = ["#245483", "#CFE1F4", "#FFD9C8", "#B23A12", "#F16F41"] }
+    func loadSample() { recent = ["#245483", "#EDECE7", "#5E5D59", "#B23A12", "#1D1D1F"] }
 
     /// The system's loupe: click a point on the screen, its color lands in the clipboard as hex.
     func pick() {

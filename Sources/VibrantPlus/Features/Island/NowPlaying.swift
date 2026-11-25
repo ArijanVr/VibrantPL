@@ -231,8 +231,8 @@ final class NowPlaying {
         position = 81
         positionStamp = .now
         let image = NSImage(size: NSSize(width: 400, height: 400), flipped: false) { r in
-            NSGradient(starting: NSColor(hex: Brand.graphite), ending: NSColor(hex: Brand.black))?.draw(in: r, angle: -60)
-            NSColor(hex: Brand.offWhite).withAlphaComponent(0.85).setFill()
+            NSGradient(starting: NSColor(hex: Brand.schiefer), ending: NSColor(hex: Brand.black))?.draw(in: r, angle: -60)
+            NSColor(hex: Brand.porzellan).withAlphaComponent(0.85).setFill()
             NSBezierPath(ovalIn: NSRect(x: 230, y: 230, width: 110, height: 110)).fill()
             return true
         }

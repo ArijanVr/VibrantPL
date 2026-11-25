@@ -3,27 +3,73 @@
 
 import SwiftUI
 
-/// Vibrant+ design tokens, Brandguide Vibrant+ V1.0 (14.11.2026): «Grau trägt. Puls zeigt.»
+/// Vibrant+ design tokens. «Porzellan trägt, Tinte spricht, Puls zeigt.»
 /// Views read colors, radii, durations and sizes from here, never hard-coded.
+/// Rosa is only an active state. Text and status colors are at least 4.5:1 on their ground.
 enum Brand {
-    // Surfaces (Brandguide 04, light / dark).
-    static let offWhite: UInt32 = 0xFDFDFC     // Hintergrund hell, Karte hell, Text dunkel
-    static let grouped: UInt32 = 0xF0F0EE      // Gruppenfläche, Seitenleiste hell
-    static let hairline: UInt32 = 0xD9DAD8     // Trennlinie hell, Text-2 dunkel
-    static let black: UInt32 = 0x090A0A        // Insel, Hintergrund dunkel, Text hell
-    static let graphite: UInt32 = 0x2A2C2C     // Karte dunkel, Trennlinie dunkel
-    static let grey: UInt32 = 0x6B6E6D         // Text-2 hell, Bedienelement-Rand
-    static let lightGrey: UInt32 = 0xD9DAD8   // Text-2 dunkel
-    /// Akzent «Puls»: Ereignis, Fokus, Status. Gleich in Light und Dark.
-    static let puls: UInt32 = 0xD63C7A
-    /// Puls für Text auf hellem Grund: Puls selbst kommt dort nur auf 4,3:1, das reicht für
-    /// kleine Schrift nicht (WCAG AA verlangt 4,5:1). Diese Spur ist gleich dunkler, nicht bunter.
-    static let pulsInk: UInt32 = 0xC9326F
-    /// Puls für Text auf Graphit: Puls selbst kommt dort nur auf 4,1:1.
-    static let pulsLight: UInt32 = 0xEC6FA2
-    /// Puls für Text auf Glas: Rauchglas über einem weissen Fenster ist das Hellste, worauf Text steht.
-    static let pulsGlass: UInt32 = 0xFFB8D5
-    // Pastell (Himmel, Pfirsich, Rosé) gehört nur ins Icon und in Werbebilder, nie in eine Oberfläche.
+    // Hellmodus
+    static let porzellan: UInt32    = 0xF6F5F1 // Haupthintergrund
+    static let kreide: UInt32       = 0xFCFCFA // Karten, Popover
+    static let leinen: UInt32       = 0xEDECE7 // Gruppen, Seitenleiste
+    static let naht: UInt32         = 0xDEDCD5 // 1-px-Trennlinien hell
+    static let tinte: UInt32        = 0x1D1D1F // Haupttext, Icon-Linie, Pulsi-Gesicht
+    static let stein: UInt32        = 0x5E5D59 // Nebentext hell
+    static let kiesel: UInt32       = 0x6E6D68 // Hinweistext hell
+
+    // Dunkelmodus
+    static let graphitNacht: UInt32 = 0x141414 // Haupthintergrund dunkel
+    static let graphit: UInt32      = 0x1E1E1D // Karten dunkel
+    static let schiefer: UInt32     = 0x282827 // Gruppen dunkel
+    static let nahtDunkel: UInt32   = 0x3A3A38 // 1-px-Trennlinien dunkel
+    static let sand: UInt32         = 0xB4B2AC // Nebentext dunkel
+    static let kieselDunkel: UInt32 = 0x8E8C87 // Hinweistext dunkel
+
+    // Akzent & Glow
+    static let puls: UInt32          = 0xC2306A // Primärakzent und Primärfläche
+    static let pulsHell: UInt32      = 0xF07AA8 // Akzent dunkel und Insel-Text auf Schwarz
+    static let pulsGlass: UInt32     = 0xFFB8D5 // Akzenttext auf Rauchglas
+    static let bernstein: UInt32     = 0xD98218 // Ruhiger Fehler-Glow hell
+    static let bernsteinHell: UInt32 = 0xF5B03E // Ruhiger Fehler-Glow dunkel
+    static let bernsteinText: UInt32 = 0x9A5B00 // Warntext hell (4,97 : 1 auf Porzellan)
+
+    // Status text (light / dark). Fills that carry white type use `puls` (5,35 : 1).
+    static let erfolg: UInt32        = 0x1E7F45
+    static let erfolgHell: UInt32    = 0x4FD07F
+    static let gefahr: UInt32        = 0xC8312C
+    static let gefahrHell: UInt32    = 0xFF6B63
+    static let hinweis: UInt32       = 0x0060C8
+    static let hinweisHell: UInt32   = 0x5EA8FF
+
+    // Insel (immer Tiefschwarz)
+    static let black: UInt32         = 0x090A0A
+}
+
+/// The warm rim around the notch island. One color, soft, never on top of text.
+enum GlowSpec {
+    static let opacityMin: Double = 0.20
+    static let opacityMax: Double = 0.30
+    static let opacityStatic: Double = 0.24
+    static let blurRadius: CGFloat = 16
+    static let lineWidth: CGFloat = 2
+    static let breathPeriod: TimeInterval = 2.4
+    static let fadeOutDuration: TimeInterval = 0.30
+    static let successPulseDuration: TimeInterval = 0.45
+}
+
+/// Window and card colors. Light and dark follow the Mac.
+enum Surface {
+    static let window = Color(light: Brand.porzellan, dark: Brand.graphitNacht)
+    static let card = Color(light: Brand.kreide, dark: Brand.graphit)
+    static let grouped = Color(light: Brand.leinen, dark: Brand.schiefer)
+    static let hairline = Color(light: Brand.naht, dark: Brand.nahtDunkel)
+    static let text = Color(light: Brand.tinte, dark: Brand.porzellan)
+    static let secondary = Color(light: Brand.stein, dark: Brand.sand)
+    static let tertiary = Color(light: Brand.kiesel, dark: Brand.kieselDunkel)
+    static let accentFill = Color(hex: Brand.puls)
+    static let success = Color(light: Brand.erfolg, dark: Brand.erfolgHell)
+    static let warning = Color(light: Brand.bernsteinText, dark: Brand.bernsteinHell)
+    static let danger = Color(light: Brand.gefahr, dark: Brand.gefahrHell)
+    static let info = Color(light: Brand.hinweis, dark: Brand.hinweisHell)
 }
 
 /// The island's look. The island is always Black (Brandguide 09: «Insel immer Black, in Light und Dark»),
@@ -71,30 +117,30 @@ struct IslandPalette: Equatable {
     var rimShade: Color
     var scheme: ColorScheme
 
-    /// The brand island: Black, in light and dark mode. Graphite layers, Off-White text, Puls for events and focus.
+    /// The brand island: deep black, in light and dark mode. Porcelain text, Puls for what is active.
     static let notch = IslandPalette(
-        background: .black,
-        card: Color(hex: Brand.graphite).opacity(0.55),
-        cardHover: Color(hex: Brand.graphite),
-        hoverVeil: Color(hex: Brand.offWhite).opacity(0.04),
-        cardWarm: Color(hex: Brand.graphite).opacity(0.55),
-        primaryText: Color(hex: Brand.offWhite),
-        secondaryText: Color(hex: Brand.lightGrey),
-        tertiaryText: Color(hex: Brand.lightGrey).opacity(0.78),
+        background: Color(hex: Brand.black),
+        card: Color(hex: Brand.schiefer).opacity(0.72),
+        cardHover: Color(hex: Brand.schiefer),
+        hoverVeil: Color(hex: Brand.porzellan).opacity(0.04),
+        cardWarm: Color(hex: Brand.schiefer).opacity(0.72),
+        primaryText: Color(hex: Brand.porzellan),
+        secondaryText: Color(hex: Brand.sand),
+        tertiaryText: Color(hex: Brand.kieselDunkel),
         accent: Color(hex: Brand.puls),
-        accentFill: Color(hex: Brand.pulsInk),
-        accentText: Color(hex: Brand.pulsLight),
-        onAccent: Color(hex: Brand.offWhite),
-        warm: Color(hex: Brand.pulsLight),
-        // «Immer erlauben» is a bigger yes than «Erlauben»: it must not look like the default.
-        warmFill: Color(hex: Brand.puls).opacity(0.22),
-        onWarm: Color(hex: Brand.offWhite),
-        separator: Color(hex: Brand.offWhite).opacity(0.1),
-        field: Color.black.opacity(0.35),
-        danger: Color(hex: Brand.puls),
+        accentFill: Color(hex: Brand.puls),
+        accentText: Color(hex: Brand.pulsHell),
+        onAccent: .white,
+        warm: Color(hex: Brand.bernsteinHell),
+        // «Immer erlauben» is a bigger yes than «Erlauben»: amber, not the primary fill.
+        warmFill: Color(hex: Brand.bernsteinHell).opacity(0.22),
+        onWarm: Color(hex: Brand.porzellan),
+        separator: Color(hex: Brand.porzellan).opacity(0.10),
+        field: Color(hex: Brand.black).opacity(0.35),
+        danger: Color(hex: Brand.gefahrHell),
         dot: Color(hex: Brand.puls),
-        rimLight: Color(hex: Brand.offWhite).opacity(0.16),
-        rimShade: Color(hex: Brand.offWhite).opacity(0.03),
+        rimLight: Color(hex: Brand.porzellan).opacity(0.08),
+        rimShade: Color(hex: Brand.porzellan).opacity(0.03),
         scheme: .dark)
 
     /// Liquid Glass. The island's body is the one glass layer, smoked so text holds over any window;
@@ -242,7 +288,7 @@ extension View {
     @ViewBuilder
     func islandBackground(_ shape: some Shape, open: Bool, band: CGFloat = 0) -> some View {
         if !open {
-            self.background(Color.black, in: shape)
+            self.background(Color(hex: Brand.black), in: shape)
         } else if IslandTheme.shared.drawsGlass {
             self.background { GlassSmoke(band: band).clipShape(shape).allowsHitTesting(false) }
                 .glassEffect(.regular, in: shape)
@@ -269,11 +315,12 @@ private struct GlassSmoke: View {
     var body: some View {
         VStack(spacing: 0) {
             if band > 0 {
-                Color.black.frame(height: band)
-                LinearGradient(colors: [.black, .black.opacity(Glass.smoke)], startPoint: .top, endPoint: .bottom)
+                Color(hex: Brand.black).frame(height: band)
+                LinearGradient(colors: [Color(hex: Brand.black), Color(hex: Brand.black).opacity(Glass.smoke)],
+                               startPoint: .top, endPoint: .bottom)
                     .frame(height: Glass.melt)
             }
-            Color.black.opacity(Glass.smoke)
+            Color(hex: Brand.black).opacity(Glass.smoke)
         }
     }
 }
@@ -282,7 +329,9 @@ enum Radius {
     static let island: CGFloat = 24
     static let card: CGFloat = 12
     static let control: CGFloat = 8
-    static let chip: CGFloat = 6
+    static let chip: CGFloat = 8
+    /// Sheets and floating windows.
+    static let sheet: CGFloat = 16
 }
 
 enum Motion {
@@ -336,10 +385,14 @@ enum Motion {
 }
 
 enum Shadow {
-    /// The open island floats: one wide, soft shadow.
-    static let card = Color.black.opacity(0.32)
-    static let cardRadius: CGFloat = 20
-    static let cardY: CGFloat = 8
+    /// A card, barely lifted. Dark mode uses the 1 pt light edge (`rimLight`) instead.
+    static let card = Color.black.opacity(0.06)
+    static let cardRadius: CGFloat = 3
+    static let cardY: CGFloat = 1
+    /// A floating container, such as the open island over the desktop.
+    static let float = Color.black.opacity(0.10)
+    static let floatRadius: CGFloat = 30
+    static let floatY: CGFloat = 12
 }
 
 /// Layout metrics for the island and the edge dial.
@@ -376,6 +429,13 @@ enum Metrics {
 
 /// Type styles. System fonts so Dynamic Type and accessibility sizes work.
 enum TypeStyle {
+    static let largeTitle = Font.system(size: 26, weight: .bold)
+    static let title = Font.system(size: 20, weight: .semibold)
+    static let headline = Font.system(size: 13, weight: .semibold)
+    static let body = Font.system(size: 13)
+    static let callout = Font.system(size: 12)
+    static let footnote = Font.system(size: 11)
+    static let caption = Font.system(size: 10, weight: .medium)
     static let islandTitle = Font.system(size: 13, weight: .semibold)
     static let islandBody = Font.system(size: 12)
     static let islandCaption = Font.system(size: 11)
@@ -487,10 +547,7 @@ struct IslandEmpty: View {
 
     var body: some View {
         VStack(spacing: Space.xs) {
-            Image(systemName: symbol)
-                .font(TypeStyle.islandEmptySymbol)
-                .foregroundStyle(IslandColor.tertiaryText)
-                .accessibilityHidden(true)
+            PulsiImage(pose: .leerzustand, height: 44, fallbackSymbol: symbol)
             Text(text)
                 .font(TypeStyle.islandCaption)
                 .foregroundStyle(IslandColor.secondaryText)
@@ -498,6 +555,7 @@ struct IslandEmpty: View {
                 .lineLimit(3)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -587,9 +645,9 @@ struct IslandPillButton: View {
     }
 }
 
-/// The Vibrant+ mark: the pulse line of the app icon (Brandguide V1.0, 10), the same centre line on the
-/// 1024 grid with a 100 px round stroke. Drawn in code so it stays sharp at every size and works as a
-/// template image in the menu bar.
+/// The Vibrant+ mark: the pulse line of icon A on the 1024 grid, stroke 64, round ends.
+/// Drawn in code so it stays sharp at every size and works as a template image in the menu bar.
+/// The pink dot stays out of the template: the menu bar tints the whole mark.
 nonisolated struct VibrantMark: Shape {
     func path(in rect: CGRect) -> Path {
         let outline = Self.outline
@@ -605,14 +663,14 @@ nonisolated struct VibrantMark: Shape {
         return box.height > 0 ? box.width / box.height : 1
     }
 
-    /// The stroked pulse line: centre line from the icon, stroke 100, round caps and joins.
+    /// The stroked pulse line: centre line from icon A, stroke 64, round caps and joins.
     private nonisolated(unsafe) static let outline: CGPath = {
         let line = CGMutablePath()
-        line.move(to: CGPoint(x: 153, y: 548))
-        for (x, y) in [(376, 548), (417, 197), (543, 834), (629, 431), (700, 548), (873, 548)] {
+        line.move(to: CGPoint(x: 232, y: 540))
+        for (x, y) in [(400, 540), (444, 318), (548, 742), (616, 430), (664, 540), (736, 540)] {
             line.addLine(to: CGPoint(x: x, y: y))
         }
-        return line.copy(strokingWithWidth: 100, lineCap: .round, lineJoin: .round, miterLimit: 10)
+        return line.copy(strokingWithWidth: 64, lineCap: .round, lineJoin: .round, miterLimit: 10)
     }()
 }
 

@@ -165,7 +165,7 @@ private struct HeartBurst: View {
                 let angle = -Double.pi + (Double(i) + 0.5) / 6 * Double.pi
                 Image(systemName: i % 2 == 0 ? "heart.fill" : "sparkle")
                     .font(.system(size: i % 2 == 0 ? 10 : 9))
-                    .foregroundStyle(i % 2 == 0 ? Color(hex: Brand.puls) : Color(hex: Brand.offWhite))
+                    .foregroundStyle(i % 2 == 0 ? Color(hex: Brand.puls) : Color(hex: Brand.porzellan))
                     .offset(x: cos(angle) * 34 * progress, y: sin(angle) * 38 * progress - 4)
                     .opacity(1 - progress)
             }

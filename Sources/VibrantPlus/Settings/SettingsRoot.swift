@@ -155,7 +155,7 @@ enum SettingsPage: String, CaseIterable, Identifiable {
         case .about: "Version Update aktualisieren"
         case .island: "Notch Navigation Seiten Hover Maus Kalender Liedtexte Überblenden"
         case .tiles: "Szenen Layout Reihenfolge Wetter Stadt Kurzbefehle"
-        case .glow: "Licht Leuchtumriss Puls Echo Netzteil Dauerlauf Komet Portal Lichtwelle"
+        case .glow: "Licht Leuchtumriss Lichtsaum Puls Bernstein Echo Netzteil Dauerlauf Bewegung"
         case .pulsi: "Maskottchen Stimme Hey Pulsi"
         case .agent: "Codex Hooks Freigabe Verbindung Verbrauch Token Automatik"
         case .assistant: "Apple Intelligence Fragen Sprachmodell"
@@ -243,6 +243,8 @@ struct SettingsRoot: View {
                 }
             }
             .searchable(text: $query, prompt: "Einstellungen suchen")
+            .scrollContentBackground(.hidden)
+            .background(.regularMaterial)
             .overlay {
                 if !query.isEmpty && !SettingsPage.allCases.contains(where: visible) {
                     ContentUnavailableView.search(text: query)
@@ -254,6 +256,7 @@ struct SettingsRoot: View {
         } detail: {
             SettingsPageView(page: navigation.page)
                 .navigationTitle(navigation.page.title)
+                .background(Surface.window)
         }
         .frame(width: 760, height: 560)
         // Like System Settings: the window is named after the page it shows.
@@ -324,6 +327,8 @@ struct SettingsPageView: View {
             }
         }
         .formStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .background(Surface.window)
     }
 }
 
@@ -372,13 +377,10 @@ struct GeneralSettings: View {
 struct GlowSettings: View {
     @State private var prefs = Prefs.shared
     var body: some View {
-        Section("Leuchtumriss") {
+        Section("Lichtsaum") {
             Toggle("Insel leuchtet, wenn Claude startet, wartet oder fertig ist", isOn: $prefs.islandGlow)
-            Picker("Bewegung", selection: $prefs.glowStyle) {
-                ForEach(GlowStyle.allCases) { Text($0.title).tag($0) }
-            }
-            .disabled(!prefs.islandGlow)
-            GlowPreview(style: prefs.glowStyle)
+            GlowPreview()
+                .disabled(!prefs.islandGlow)
             Toggle("Läuft dauernd, solange die Insel offen ist", isOn: $prefs.glowWhileOpen)
                 .disabled(!prefs.islandGlow)
             Toggle("Auch beim Öffnen mit der Maus auf dem Notch", isOn: $prefs.glowOnHover)
@@ -388,7 +390,7 @@ struct GlowSettings: View {
                 .onChange(of: prefs.shortcutEcho) { KeyMonitor.shared.update() }
             Toggle("Beim Anstecken des Netzteils", isOn: $prefs.chargeGlow)
                 .disabled(!prefs.islandGlow)
-            Text("Ein Puls-Umriss läuft kurz um die Insel; bei einer Frage bleibt er stehen. Das Kurzbefehl-Echo braucht die Bedienungshilfen-Berechtigung. Mit «Bewegung reduzieren» ohne Lauf.")
+            Text("Ein warmer Lichtsaum liegt am Rand der Insel, nie über dem Text. Während Claude arbeitet, atmet er in 2,4 Sekunden. Danach ein kurzer Puls, dann blendet er in 0,3 Sekunden aus. Bei einer Frage bleibt er ruhig in Bernstein. Mit «Bewegung reduzieren» steht er still. Das Kurzbefehl-Echo braucht die Bedienungshilfen-Berechtigung.")
                 .font(.caption).foregroundStyle(.secondary)
         }
     }
@@ -1355,7 +1357,7 @@ struct AboutSettings: View {
                 Text("Vibrant+ \(version) ist bereit.")
                 Button("Jetzt laden und ersetzen") { updater.install() }
             case .downloading: Text("Update wird geladen…")
-            case .failed(let message): Text(message).foregroundStyle(.red)
+            case .failed(let message): Text(message).foregroundStyle(Palette.danger)
             }
             Text("Zuerst GitHub Releases (ArijanVr/VibrantPL). Optional lokaler Ordner über die Umgebungsvariable PROJEKTELAB_RELEASES. Kein Sparkle. Automatisch nur prüfen, nie still installieren.")
                 .font(.caption).foregroundStyle(.secondary)

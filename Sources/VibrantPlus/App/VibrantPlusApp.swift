@@ -58,12 +58,14 @@ enum Windows {
         case .settings: AnyView(SettingsRoot())
         case .clipboard: AnyView(ClipboardView())
         }
-        let host = NSHostingController(rootView: root.themed().noInitialFocus())
+        let rooted = root.themed().noInitialFocus()
+        let host = NSHostingController(rootView: kind == .today ? AnyView(rooted) : AnyView(rooted.brandWindow()))
         let w = NSWindow(contentViewController: host)
         w.title = kind == .settings ? SettingsRoot.initialPage.title : kind.title
         w.identifier = NSUserInterfaceItemIdentifier(kind.rawValue)
         w.isReleasedWhenClosed = false
         w.delegate = delegate
+        if kind != .today { w.backgroundColor = .brandWindow }
         switch kind {
         case .agent:
             w.styleMask.insert(.resizable)

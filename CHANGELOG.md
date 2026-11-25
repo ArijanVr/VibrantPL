@@ -1,5 +1,13 @@
 # Changelog
 
+## Unveröffentlicht
+
+Marke: «Porzellan trägt, Tinte spricht, Puls zeigt.»
+
+- Neue Farbtokens. Puls ist #C2306A, Flächen sind Porzellan und Kreide, Text ist Tinte. Die Insel bleibt tiefschwarz.
+- App-Icon A «Porzellan-Puls», Wortmarke ohne Notch-Kachel, Porzellan-Pulsi in Willkommen, Leerzuständen und Erfolg.
+- Der Leuchtumriss ist ein ruhiger Lichtsaum am Rand: Atmen in 2,4 s, Ausblenden in 0,3 s, Bernstein bei einer wartenden Anfrage, still bei «Bewegung reduzieren».
+
 ## 1.1.1 — 2026-11-22
 
 Übersichtlichere Einstellungen.
@@ -153,7 +161,7 @@ Die erste definitive Version. Die Nummern 3.x davor waren Vorabstände; ab hier 
 
 ## 3.4 — 14.11.2026
 
-- Neu: **Brandguide Vibrant+ V1.0.** Die Oberfläche folgt «Grau trägt. Puls zeigt.»: Grau für Flächen und Text, Puls (#D63C7A) als einziger Akzent für Ereignisse, Fokus und Status.
+- Neu: **Brandguide Vibrant+ V1.0.** Die Oberfläche folgt «Grau trägt. Puls zeigt.»: Grau für Flächen und Text, Puls als einziger Akzent für Ereignisse, Fokus und Status.
 - Geändert: **Insel immer Schwarz**, hell wie dunkel. Der Stil «ARJO Verspielt» mit Pastellkarten ist entfallen; gespeicherte Auswahl fällt auf «Notch-Schwarz» zurück.
 - Geändert: **App-Icon** mit der Pulslinie auf Himmel-zu-Pfirsich-Verlauf und Puls-Glow. Das Menüleisten-Symbol ist dieselbe Pulslinie.
 - Geändert: **Wortmarke** mit Puls-«+» statt der Plus-Aussparung im Feld.

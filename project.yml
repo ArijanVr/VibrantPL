@@ -34,6 +34,9 @@ targets:
       - path: Resources/KeySounds
         type: folder
         buildPhase: resources
+      - path: Resources/Pulsi
+        type: folder
+        buildPhase: resources
     dependencies:
       - target: VibrantPlusKit
     settings:

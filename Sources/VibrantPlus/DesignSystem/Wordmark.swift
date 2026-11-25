@@ -4,10 +4,9 @@
 import SwiftUI
 import VibrantPlusKit
 
-/// The Vibrant+ wordmark, Brandguide V1.0 (04): «Vibrant» in Geist Medium (path data copied unchanged from
-/// Design/Wortmarke/Vibrant-Plus_Wortmarke_*_v1.svg), and a «+» in Puls, round ends, tilted -8°, top aligned
-/// with the cap height. The «+» is its own shape, so it takes the accent color while the text takes the given one.
-/// Both shapes share one box, so they line up in a ZStack.
+/// The Vibrant+ wordmark: «Vibrant» in Geist Medium (path data unchanged) and a free «+».
+/// The plus is a cross in Puls, round ends, stroke 92 / 1000 em, tilted -8°, top aligned with the cap height.
+/// There is no notch tile behind it. The plus is its own shape, so it takes Puls while the word takes `color`.
 nonisolated struct Wordmark: Shape {
     /// Only the «+», not the text.
     var plusOnly = false
@@ -56,7 +55,7 @@ extension Wordmark {
     @MainActor static func view(height: CGFloat, color: some ShapeStyle = Color.primary) -> some View {
         ZStack {
             Wordmark().fill(color)
-            Wordmark(plusOnly: true).fill(Color(hex: Brand.puls))
+            Wordmark(plusOnly: true).fill(Color(light: Brand.puls, dark: Brand.pulsHell))
         }
         .frame(width: height * aspectRatio, height: height)
         .accessibilityElement()
