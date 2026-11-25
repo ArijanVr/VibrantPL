@@ -38,7 +38,7 @@
 
 ### Fertige App (empfohlen)
 
-1. Lade das neueste Release herunter: **[Vibrant+-1.2.0.zip](https://github.com/ArijanVr/VibrantPL/releases/download/v1.2.0/Vibrant%2B-1.2.0.zip)**  
+1. Lade das neueste Release herunter: **[Vibrant+-1.2.1.zip](https://github.com/ArijanVr/VibrantPL/releases/download/v1.2.1/Vibrant%2B-1.2.1.zip)**  
    (oder die [Release-Seite](https://github.com/ArijanVr/VibrantPL/releases/latest))
 2. Öffne die ZIP-Datei (Doppelklick).
 3. Ziehe **Vibrant+.app** in den Ordner **Programme** (`/Applications`).
@@ -48,10 +48,10 @@
 
 **Prüfen:** Menüleistensymbol ist sichtbar; Notch-Hover öffnet die Insel.
 
-SHA-256 von `Vibrant+-1.2.0.zip`:
+SHA-256 von `Vibrant+-1.2.1.zip`:
 
 ```text
-f0a5cf93ae75d5f216c73efa2e457bd233c75584156d18b3ae7b28b524484ec0
+8f486e22b38e1ed07c188b31abc51c505966686a706e682770cf7691455859fd
 ```
 
 ### Neuinstallation / von älteren Builds umsteigen
@@ -129,7 +129,7 @@ Produktseite mit eingebettetem Film: [arjolab.ch/vibrant-plus](https://arjolab.c
 - **Diktieren** — Sprache zu Text halten und sprechen
 - **App-Raster**, Tastengeräusche, Downloads per Link und mehr
 
-Version **1.2.0** ist das aktuelle Release: die neue Marke «Porzellan trägt, Tinte spricht, Puls zeigt.» mit Icon A, Lichtsaum und Porzellan-Pulsi. 1.1.1 brachte übersichtlichere Einstellungen, 1.1.0 die neu gestaltete Insel, die Codex-Anbindung, neue Kacheln und die Update-Karte. Auto-Updates zeigen hierher; Vibrant+ lädt neue Fassungen direkt in der App.
+Version **1.2.1** ist das aktuelle Release: Feinschliff an der Marke (Erfolg in Grün, Rosa nur für Aktives). 1.2.0 brachte die neue Marke «Porzellan trägt, Tinte spricht, Puls zeigt.» mit Icon A, Lichtsaum und Porzellan-Pulsi. 1.1.1 brachte übersichtlichere Einstellungen, 1.1.0 die neu gestaltete Insel, die Codex-Anbindung, neue Kacheln und die Update-Karte. Auto-Updates zeigen hierher; Vibrant+ lädt neue Fassungen direkt in der App.
 
 ---
 
