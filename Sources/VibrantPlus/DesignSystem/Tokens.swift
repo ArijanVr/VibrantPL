@@ -51,6 +51,8 @@ enum GlowSpec {
     static let opacityStatic: Double = 0.24
     static let blurRadius: CGFloat = 16
     static let lineWidth: CGFloat = 2
+    /// Strich, den der Blur zum Lichtsaum streut. Eine 2-pt-Linie verschwindet bei Blur 16 und 20 bis 30 % fast ganz.
+    static let saumWidth: CGFloat = 48
     static let breathPeriod: TimeInterval = 2.4
     static let fadeOutDuration: TimeInterval = 0.30
     static let successPulseDuration: TimeInterval = 0.45

@@ -104,7 +104,7 @@ struct IslandGlow: View {
     private func rim(_ color: Color, _ opacity: Double) -> some View {
         let outline = IslandOutline(island: shape)
         return outline
-            .stroke(color, style: StrokeStyle(lineWidth: GlowSpec.lineWidth, lineCap: .round, lineJoin: .round))
+            .stroke(color, style: StrokeStyle(lineWidth: GlowSpec.saumWidth, lineCap: .round, lineJoin: .round))
             .blur(radius: GlowSpec.blurRadius)
             .opacity(opacity)
             // Only the light outside the body remains. Text sits on the black fill, not on this rim.
@@ -122,7 +122,7 @@ extension View {
         background {
             if active {
                 RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
-                    .stroke(color, lineWidth: GlowSpec.lineWidth)
+                    .stroke(color, lineWidth: GlowSpec.saumWidth)
                     .blur(radius: GlowSpec.blurRadius)
                     .opacity(GlowSpec.opacityStatic)
                     .offset(y: 6)
