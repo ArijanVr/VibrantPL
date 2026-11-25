@@ -1,6 +1,6 @@
 # Changelog
 
-## Unveröffentlicht
+## 1.2.0 — 2026-11-25
 
 Marke: «Porzellan trägt, Tinte spricht, Puls zeigt.»
 
