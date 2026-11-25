@@ -263,7 +263,7 @@ struct AgentTile: View {
                     }
                     if !agent.filesForClaude.isEmpty {
                         Label("\(agent.filesForClaude.count) Datei(en) für die nächste Nachricht", systemImage: "paperclip")
-                            .font(TypeStyle.islandCaption).foregroundStyle(IslandColor.accentText)
+                            .font(TypeStyle.islandCaption).foregroundStyle(IslandColor.secondaryText)
                     }
                 } else {
                     IslandEmpty(symbol: "sparkles", text: "Starte Claude Code in einem Terminal. Hier erscheint, was es tut.")

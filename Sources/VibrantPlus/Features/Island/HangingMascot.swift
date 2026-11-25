@@ -39,7 +39,7 @@ struct HangingMascot: View {
                     Image(systemName: "ear")
                         .font(.system(size: 9, weight: .bold))
                         .foregroundStyle(IslandColor.accentText)
-                        .padding(3)
+                        .padding(4)
                         .background(Circle().fill(IslandColor.card))
                         .accessibilityLabel("Pulsi hört auf «Hey Pulsi» (Beta)")
                 }

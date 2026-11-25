@@ -14,7 +14,7 @@ struct AssistantCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Space.sm) {
             HStack(spacing: Space.sm) {
-                Image(systemName: "bubble.left.and.text.bubble.right.fill").foregroundStyle(IslandColor.accentText)
+                Image(systemName: "bubble.left.and.text.bubble.right.fill").foregroundStyle(IslandColor.secondaryText)
                 Text("Assistent").font(TypeStyle.islandTitle)
                 Text("Apple Intelligence · auf diesem Mac").font(TypeStyle.islandCaption).foregroundStyle(IslandColor.tertiaryText)
                 Spacer()

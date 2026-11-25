@@ -31,7 +31,7 @@ struct ClipboardView: View {
                     HStack(spacing: Space.md) {
                         if item.kind == .image, let image = clip.images[item.id] {
                             Image(nsImage: image).resizable().scaledToFit().frame(width: 56, height: 40)
-                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                                .clipShape(RoundedRectangle(cornerRadius: Radius.control))
                         } else if item.kind == .file {
                             Image(systemName: "doc").frame(width: 24)
                         }

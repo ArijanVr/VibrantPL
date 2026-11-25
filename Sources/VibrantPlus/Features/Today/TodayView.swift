@@ -200,7 +200,7 @@ struct InsightsChart: View {
                     .symbol(.circle)
             }
         }
-        .chartForegroundStyleScale(["Fokusminuten": IslandColor.accent, "Erledigte Aufgaben (×25)": IslandColor.warm])
+        .chartForegroundStyleScale(["Fokusminuten": IslandColor.primaryText, "Erledigte Aufgaben (×25)": IslandColor.warm])
         .chartXAxis { AxisMarks(values: .stride(by: .day)) { _ in AxisValueLabel(format: .dateTime.weekday(.narrow)) } }
         .chartLegend(position: .bottom, alignment: .leading)
         .font(TypeStyle.islandMicro)

@@ -569,7 +569,7 @@ struct AgentSettings: View {
                 } else {
                     Label(agent.hooksInstalled ? "Verbunden" : "Nicht verbunden",
                           systemImage: agent.hooksInstalled ? "checkmark.circle.fill" : "circle.dashed")
-                        .foregroundStyle(agent.hooksInstalled ? Palette.accentText : .secondary)
+                        .foregroundStyle(agent.hooksInstalled ? Palette.success : .secondary)
                 }
             }
             if agent.hooksOutdated {
@@ -597,7 +597,7 @@ struct AgentSettings: View {
                 } else {
                     Label(agent.codexInstalled ? "Verbunden" : "Nicht verbunden",
                           systemImage: agent.codexInstalled ? "checkmark.circle.fill" : "circle.dashed")
-                        .foregroundStyle(agent.codexInstalled ? Palette.accentText : .secondary)
+                        .foregroundStyle(agent.codexInstalled ? Palette.success : .secondary)
                 }
             }
             HStack {
@@ -618,7 +618,7 @@ struct AgentSettings: View {
                 LabeledContent(provider.title) {
                     Label(installed || hasData ? (hasData ? "Erkannt" : "Installiert") : "Nicht gefunden",
                           systemImage: hasData ? "checkmark.circle.fill" : "circle.dashed")
-                        .foregroundStyle(hasData ? Palette.accentText : .secondary)
+                        .foregroundStyle(hasData ? Palette.success : .secondary)
                 }
                 .help(provider.statusText(installed: installed, hasData: hasData))
             }
@@ -660,7 +660,7 @@ struct AssistantSettings: View {
         Section {
             switch Assistant.state {
             case .available:
-                Label("Apple Intelligence ist bereit", systemImage: "checkmark.circle.fill").foregroundStyle(Palette.accentText)
+                Label("Apple Intelligence ist bereit", systemImage: "checkmark.circle.fill").foregroundStyle(Palette.success)
             case .unavailable(let why):
                 Label(why, systemImage: "exclamationmark.triangle")
                 Button("Systemeinstellungen öffnen") {
@@ -735,7 +735,7 @@ struct ScreenshotSettings: View {
             LabeledContent("Bildschirmaufnahme") {
                 HStack {
                     Image(systemName: allowed ? "checkmark.circle.fill" : "xmark.circle")
-                        .foregroundStyle(allowed ? Palette.accentText : .secondary)
+                        .foregroundStyle(allowed ? Palette.success : .secondary)
                         .accessibilityLabel(allowed ? "Erlaubt" : "Nicht erlaubt")
                     if !allowed {
                         Button("Erlauben…") { ScreenCapture.requestAccess(); Permission.screenRecording.openSettings() }
@@ -1286,7 +1286,7 @@ struct PermissionRow: View {
             HStack {
                 if let granted = status {
                     Image(systemName: granted ? "checkmark.circle.fill" : "xmark.circle")
-                        .foregroundStyle(granted ? Palette.accentText : .secondary)
+                        .foregroundStyle(granted ? Palette.success : .secondary)
                         .accessibilityLabel(granted ? "Erlaubt" : "Nicht erlaubt")
                 }
                 Button("Öffnen…") { request() }

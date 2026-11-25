@@ -19,9 +19,9 @@ struct TemperatureCurve: View {
             let line = path(points, in: geo.size, closed: false)
             ZStack {
                 path(points, in: geo.size, closed: true)
-                    .fill(LinearGradient(colors: [IslandColor.accent.opacity(0.28), IslandColor.accent.opacity(0)],
+                    .fill(LinearGradient(colors: [IslandColor.primaryText.opacity(0.16), IslandColor.primaryText.opacity(0)],
                                          startPoint: .top, endPoint: .bottom))
-                line.stroke(IslandColor.accent, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+                line.stroke(IslandColor.primaryText, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
             }
         }
         .frame(height: 16)
