@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.1 — 2026-11-25
+
+Feinschliff an der neuen Marke.
+
+- Einstellungen: «Verbunden», «Erkannt», «Apple Intelligence ist bereit» und erteilte Rechte erscheinen in Grün statt in Puls.
+- Rosa nur noch für Aktives: Diagrammlinien, das Assistent-Symbol und der Dateihinweis in der Insel sind neutral.
+- Zwischenablage mit 8 pt Eckenradius, Pulsi am Notch mit 4 pt Abstand.
+
 ## 1.2.0 — 2026-11-25
 
 Marke: «Porzellan trägt, Tinte spricht, Puls zeigt.»
