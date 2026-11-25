@@ -29,8 +29,8 @@ struct AgentPanelView: View {
     private var historyView: some View {
         Group {
             if agent.history.isEmpty {
-                ContentUnavailableView("Noch kein Verlauf", systemImage: "clock.arrow.circlepath",
-                                       description: Text("Jede abgeschlossene Antwort von Claude Code erscheint hier, mit Dauer, Dateien und Verbrauch."))
+                PulsiEmpty(title: "Noch kein Verlauf",
+                           text: "Jede abgeschlossene Antwort von Claude Code erscheint hier, mit Dauer, Dateien und Verbrauch.")
             } else {
                 List(agent.history) { e in
                     VStack(alignment: .leading, spacing: 2) {
@@ -74,10 +74,10 @@ struct AgentPanelView: View {
             .navigationSplitViewColumnWidth(min: 200, ideal: 230)
             .overlay {
                 if agent.sortedSessions.isEmpty {
-                    ContentUnavailableView("Keine Claude-Code-Sitzung", systemImage: "sparkles",
-                                           description: Text(agent.hooksInstalled
-                                                             ? "Starte Claude Code in einem Terminal. Jede Sitzung erscheint hier."
-                                                             : "Verbinde Vibrant+ in den Einstellungen mit Claude Code."))
+                    PulsiEmpty(title: "Keine Claude-Code-Sitzung",
+                               text: agent.hooksInstalled
+                                   ? "Starte Claude Code in einem Terminal. Jede Sitzung erscheint hier."
+                                   : "Verbinde Vibrant+ in den Einstellungen mit Claude Code.")
                 }
             }
         } detail: {

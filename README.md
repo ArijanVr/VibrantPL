@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/ArijanVr/VibrantPL/releases/latest"><img src="https://img.shields.io/github/v/release/ArijanVr/VibrantPL?label=Release&color=D63C7A" alt="Latest release"></a>
+  <a href="https://github.com/ArijanVr/VibrantPL/releases/latest"><img src="https://img.shields.io/github/v/release/ArijanVr/VibrantPL?label=Release&color=C2306A" alt="Latest release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/Lizenz-GPL--3.0--or--later-blue" alt="GPL-3.0-or-later"></a>
   <a href="https://arjolab.ch/vibrant-plus"><img src="https://img.shields.io/badge/Website-arjolab.ch-111111" alt="Website"></a>
   <img src="https://img.shields.io/badge/macOS-26+-black" alt="macOS 26+">

@@ -50,13 +50,15 @@ struct IslandRoot: View {
             // Shoulders sit outside the body: pad first, then draw the outline around it.
             .padding(.horizontal, shoulder)
             .islandBackground(islandShape, open: model.isOpen, band: model.bandHeight)
-            .shadow(color: model.isOpen ? Shadow.card : .clear, radius: Shadow.cardRadius, y: Shadow.cardY)
-            .overlay(alignment: .top) {
-                // The idle island has no size at all: the light then runs along the notch itself.
+            .background(alignment: .top) {
+                // Behind the black body and masked to the outside edge, so the rim never covers text.
                 IslandGlow(shape: islandShape, status: agent.headline?.status, open: model.isOpen)
                     .frame(width: isIdle ? model.notchSize.width + Space.sm : nil,
                            height: isIdle ? model.notchSize.height + Space.xs : nil)
+                    .allowsHitTesting(false)
+                    .zIndex(-1)
             }
+            .shadow(color: model.isOpen ? Shadow.float : .clear, radius: Shadow.floatRadius, y: Shadow.floatY)
             .scaleEffect(model.growing ? Motion.growScale : 1, anchor: .top)
             .foregroundStyle(IslandColor.primaryText)
             .environment(\.colorScheme, IslandColor.scheme)
@@ -676,6 +678,7 @@ struct AgentRequestCard: View {
         }
         .padding(Space.md)
         .islandSurface(tone: .warm)
+        .cardUnderGlow(Color(hex: Brand.bernsteinHell))
     }
 
     private var projectName: String {

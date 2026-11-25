@@ -6,7 +6,7 @@ import Observation
 import SwiftUI
 import VibrantPlusKit
 
-/// How the Puls outline moves around the island.
+/// Kept so a saved «island.glowStyle» still decodes. The rim itself is one warm light, not three motions.
 enum GlowStyle: String, CaseIterable, Identifiable {
     case wave, comet, portal
     var id: String { rawValue }
@@ -19,7 +19,7 @@ enum GlowStyle: String, CaseIterable, Identifiable {
     }
 }
 
-/// Anything that wants the outline to light up once calls `fire()`.
+/// Anything that wants the rim to light up once calls `fire()`.
 @Observable
 final class GlowCenter {
     static let shared = GlowCenter()
@@ -27,14 +27,16 @@ final class GlowCenter {
     func fire() { if Prefs.shared.islandGlow { tick += 1 } }
 }
 
-/// The Puls outline around the island: runs once on an event, and stays lit while Claude waits for the person.
+/// A warm rim on the outside of the island. It sits behind the black body, so it never covers text.
 struct IslandGlow: View {
     var shape: IslandShape
     var status: AgentSession.Status?
-    /// The island is open: with «Dauerlauf» on, the light keeps travelling over its edge.
+    /// The island is open. With «Dauerlauf» the rim keeps breathing on the edge.
     var open = false
     private var center = GlowCenter.shared
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var event = 0.0
+    @State private var pulsing = false
 
     init(shape: IslandShape, status: AgentSession.Status?, open: Bool = false) {
         self.shape = shape
@@ -42,130 +44,111 @@ struct IslandGlow: View {
         self.open = open
     }
 
-    private var holds: Bool { status == .needsPermission || status == .asking }
+    private var attention: Bool { status == .needsPermission || status == .asking }
 
-    @State private var statusTick = 0
-
-    var body: some View {
-        if Prefs.shared.islandGlow {
-            ZStack {
-                // Reduce motion: no light that never stops, only the events stay (as a still outline).
-                if open && Prefs.shared.glowWhileOpen && !reduceMotion {
-                    GlowLoop(shape: IslandOutline(island: shape), style: Prefs.shared.glowStyle)
-                        .transition(.opacity.animation(Motion.fade))
-                }
-                GlowOutline(shape: IslandOutline(island: shape), style: Prefs.shared.glowStyle, tick: center.tick &+ statusTick, holds: holds)
-            }
-            .onChange(of: status) { _, new in
-                if new == .working || new == .waiting || new == .needsPermission || new == .asking { statusTick += 1 }
-            }
-        }
+    /// Claude is working, or the person asked the rim to stay on while the island is open.
+    private var breathes: Bool {
+        guard !attention else { return false }
+        if status == .working { return true }
+        return open && Prefs.shared.glowWhileOpen
     }
-}
-
-/// The outline itself: every change of `tick` runs the chosen movement once; `holds` keeps it lit.
-struct GlowOutline<S: Shape>: View {
-    var shape: S
-    var style: GlowStyle
-    var tick: Int
-    var holds = false
-    @State private var lap: CGFloat = 0
-    @State private var flash = 0.0
-    @State private var grow: CGFloat = 1
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        let puls = Color(hex: Brand.puls)
-        ZStack {
-            if style == .portal {
-                shape.stroke(puls, lineWidth: 2)
-                    .shadow(color: puls.opacity(0.9), radius: 8)
-                    .scaleEffect(grow, anchor: .top)
-                    .opacity(flash)
-            } else {
-                shape.trim(from: lap, to: min(lap + (style == .comet ? 0.34 : 0.22), 1))
-                    .stroke(puls, style: StrokeStyle(lineWidth: style == .comet ? 3 : 2, lineCap: .round))
-                    .shadow(color: puls.opacity(0.9), radius: style == .comet ? 9 : 6)
-                    .opacity(flash)
-            }
-            // A question or permission keeps the whole outline lit until it is answered.
-            shape.stroke(puls, lineWidth: 1.5)
-                .shadow(color: puls.opacity(0.7), radius: 5)
-                .opacity(holds ? 1 : 0)
+        let _ = center.tick
+        let color = attention ? Color(hex: Brand.bernsteinHell) : Color(hex: Brand.pulsHell)
+        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion || !breathes || pulsing)) { timeline in
+            rim(color, opacity(at: timeline.date))
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)
-        .onChange(of: tick) { run() }
-        .animation(reduceMotion ? nil : Motion.fade, value: holds)
+        .onChange(of: center.tick) {
+            guard status != .working, !attention else { return }
+            playPulse()
+        }
+        .onChange(of: status) { old, new in
+            // End of a turn: one short pulse, then the rim leaves (or the open-island breath returns).
+            if old == .working, new == .waiting || new == .ended || new == nil { playPulse() }
+        }
     }
 
-    private func run() {
-        guard !reduceMotion else { return }
-        lap = 0; flash = 1; grow = 1
-        switch style {
-        case .wave:
-            withAnimation(.timingCurve(0.2, 0, 0, 1, duration: 0.9)) { lap = 0.78 }
-            withAnimation(.easeOut(duration: 0.4).delay(0.6)) { flash = 0 }
-        case .comet:
-            withAnimation(.timingCurve(0.4, 0, 0.2, 1, duration: 0.7)) { lap = 0.66 }
-            withAnimation(.easeOut(duration: 0.3).delay(0.45)) { flash = 0 }
-        case .portal:
-            withAnimation(.timingCurve(0.2, 0, 0, 1, duration: 0.5)) { grow = 1.05 }
-            withAnimation(.easeOut(duration: 0.4).delay(0.2)) { flash = 0 }
+    private func opacity(at date: Date) -> Double {
+        if pulsing { return reduceMotion ? GlowSpec.opacityStatic : event }
+        if attention || breathes {
+            if reduceMotion || attention { return GlowSpec.opacityStatic }
+            let t = date.timeIntervalSinceReferenceDate
+            return 0.25 + 0.05 * sin(2 * .pi * t / GlowSpec.breathPeriod)
         }
+        return 0
+    }
+
+    /// Rise to 0.30 and fade out. Together about 0.45 s. Reduce motion holds 0.24, with no breath.
+    private func playPulse() {
+        if reduceMotion {
+            pulsing = true
+            event = GlowSpec.opacityStatic
+            DispatchQueue.main.asyncAfter(deadline: .now() + GlowSpec.successPulseDuration) {
+                event = 0
+                pulsing = false
+            }
+            return
+        }
+        pulsing = true
+        event = GlowSpec.opacityMin
+        withAnimation(.easeIn(duration: 0.15)) { event = GlowSpec.opacityMax }
+        withAnimation(.easeOut(duration: GlowSpec.fadeOutDuration).delay(0.15)) { event = 0 }
+        DispatchQueue.main.asyncAfter(deadline: .now() + GlowSpec.successPulseDuration) {
+            pulsing = false
+        }
+    }
+
+    private func rim(_ color: Color, _ opacity: Double) -> some View {
+        let outline = IslandOutline(island: shape)
+        return outline
+            .stroke(color, style: StrokeStyle(lineWidth: GlowSpec.lineWidth, lineCap: .round, lineJoin: .round))
+            .blur(radius: GlowSpec.blurRadius)
+            .opacity(opacity)
+            // Only the light outside the body remains. Text sits on the black fill, not on this rim.
+            .mask {
+                Rectangle()
+                    .overlay { shape.fill(Color.black).blendMode(.destinationOut) }
+                    .compositingGroup()
+            }
     }
 }
 
-/// The light that keeps travelling while the island is open: from the left shoulder around the bottom to
-/// the right one and back, slowing at each end, so it never jumps. Portal breathes instead of travelling.
-/// It only runs while it is on screen (the open island), and Reduce motion leaves it out.
-struct GlowLoop<S: Shape>: View {
-    var shape: S
-    var style: GlowStyle
-
-    var body: some View {
-        let puls = Color(hex: Brand.puls)
-        TimelineView(.animation) { ctx in
-            let t = ctx.date.timeIntervalSinceReferenceDate
-            let period = Motion.glowLoopPeriod
-            if style == .portal {
-                let breath = 0.5 - 0.5 * cos(2 * .pi * t / period)
-                shape.stroke(puls, lineWidth: 1.5)
-                    .shadow(color: puls.opacity(0.8), radius: 6)
-                    .opacity(0.15 + 0.5 * breath)
-            } else {
-                let length: CGFloat = style == .comet ? 0.3 : 0.2
-                // 0 → 1 → 0 with a soft turn at both ends.
-                let phase = t.truncatingRemainder(dividingBy: 2 * period) / period
-                let there = phase < 1 ? phase : 2 - phase
-                let start = CGFloat(0.5 - 0.5 * cos(.pi * there)) * (1 - length)
-                shape.trim(from: start, to: start + length)
-                    .stroke(puls, style: StrokeStyle(lineWidth: style == .comet ? 2.5 : 2, lineCap: .round))
-                    .shadow(color: puls.opacity(0.85), radius: style == .comet ? 8 : 6)
-                    .opacity(0.85)
+extension View {
+    /// A soft light under a card. The card's own fill stays in front, so the light never covers its text.
+    func cardUnderGlow(_ color: Color, active: Bool = true) -> some View {
+        background {
+            if active {
+                RoundedRectangle(cornerRadius: Radius.card, style: .continuous)
+                    .stroke(color, lineWidth: GlowSpec.lineWidth)
+                    .blur(radius: GlowSpec.blurRadius)
+                    .opacity(GlowSpec.opacityStatic)
+                    .offset(y: 6)
+                    .allowsHitTesting(false)
             }
         }
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
     }
 }
 
-/// A small island in the settings that plays the movement, so it can be judged without waiting for an event.
+/// A small island in settings, so the rim can be judged without waiting for Claude.
 struct GlowPreview: View {
-    var style: GlowStyle
     @State private var tick = 0
     @State private var holds = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
+        let shape = IslandShape(radius: 20, shoulder: 8)
         VStack(spacing: 8) {
             ZStack {
-                IslandShape(radius: 20, shoulder: 8).fill(Color.black)
-                if Prefs.shared.glowWhileOpen && !reduceMotion {
-                    GlowLoop(shape: IslandOutline(island: IslandShape(radius: 20, shoulder: 8)), style: style)
-                }
-                GlowOutline(shape: IslandOutline(island: IslandShape(radius: 20, shoulder: 8)), style: style, tick: tick, holds: holds)
-                Text("Vibrant+").font(.caption.weight(.semibold)).foregroundStyle(.white.opacity(0.8))
+                shape.fill(Color(hex: Brand.black))
+                Text("Vibrant+").font(.caption.weight(.semibold)).foregroundStyle(Color(hex: Brand.porzellan))
+            }
+            .background {
+                IslandGlow(shape: shape,
+                           status: holds ? .needsPermission : (tick > 0 ? .working : nil),
+                           open: Prefs.shared.glowWhileOpen)
             }
             .frame(width: 220, height: 56)
             HStack {
@@ -175,12 +158,10 @@ struct GlowPreview: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 6)
-        .onAppear { DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { tick += 1 } }
-        .onChange(of: style) { DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { tick += 1 } }
     }
 }
 
-/// Lights the outline when the Mac is plugged in.
+/// Lights the rim when the Mac is plugged in.
 final class ChargeGlow {
     static let shared = ChargeGlow()
     private var source: CFRunLoopSource?
