@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.2 — 2026-11-25
+
+Der Lichtsaum ist wieder sichtbar.
+
+- Seit 1.2.0 war der Lichtsaum um die Insel praktisch unsichtbar: bei Claude, Erfolg, Benachrichtigungen und Ladekabel. Er leuchtet jetzt wieder als weicher rosa Saum, Deckkraft und Zeiten bleiben gleich.
+- Auch der Bernstein-Schein unter einer wartenden Anfrage ist wieder zu sehen.
+
 ## 1.2.1 — 2026-11-25
 
 Feinschliff an der neuen Marke.
