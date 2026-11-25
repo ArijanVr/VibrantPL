@@ -109,9 +109,12 @@ struct IslandGlow: View {
             .opacity(opacity)
             // Only the light outside the body remains. Text sits on the black fill, not on this rim.
             .mask {
-                Rectangle()
-                    .overlay { shape.fill(Color.black).blendMode(.destinationOut) }
-                    .compositingGroup()
+                // The mask reaches past the frame, or the light outside the island is cut off with a hard edge.
+                ZStack {
+                    Rectangle().padding(-(GlowSpec.saumWidth + GlowSpec.blurRadius * 2))
+                    shape.fill(Color.black).blendMode(.destinationOut)
+                }
+                .compositingGroup()
             }
     }
 }
